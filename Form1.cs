@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Data;
+using System.Data.OleDb;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -44,6 +46,22 @@ namespace BUPicksList
 
         private void CreateButton_Click(object sender, EventArgs e)
         {
+            try
+            {
+                OLEDBConnection MyConn;
+                DataSet dataSet;
+                OleDbDataAdapter adapter;
+
+                
+                
+                
+                
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
             createNewFile("testing");
         }
 
