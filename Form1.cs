@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using System.Data.OleDb;
+using OLEDB = System.Data.OleDb;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -23,6 +23,7 @@ namespace BUPicksList
         private string formula = "=IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
         private int lastUsedRow;
         private string masterData;
+        private string path;
         public Form1()
         {
             InitializeComponent();
@@ -46,11 +47,23 @@ namespace BUPicksList
 
         private void CreateButton_Click(object sender, EventArgs e)
         {
+            //Create a DataSet to use for following operations
             try
             {
-                OLEDBConnection MyConn;
+                //Fetches sheet with master list data
+                xlApp = new Excel.Application();
+                xlWorkbook = xlApp.Workbooks.Open(masterData);
+                Excel.Worksheet sheet = xlWorkbook.Sheets[1];
+
+                OLEDB.OleDbConnection MyConn;
+                OLEDB.OleDbCommand myCommand = new OLEDB.OleDbCommand();
                 DataSet dataSet;
-                OleDbDataAdapter adapter;
+                OLEDB.OleDbDataAdapter adapter;
+                String sql = null;
+                MyConn = new OLEDB.OleDbConnection(string.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0 Xml; HDR = YES\"", (path + masterData)));
+
+                
+
 
                 
                 
@@ -90,6 +103,7 @@ namespace BUPicksList
                 //get name of file and path
                 pathfilename = dlg.FileName;
                 FileLabel.Text = Path.GetFileName(dlg.FileName);
+                path = Path.GetDirectoryName(dlg.FileName);
 
                 //get raw data as a sheet
                 object misValue = System.Reflection.Missing.Value;
