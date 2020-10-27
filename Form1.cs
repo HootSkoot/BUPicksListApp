@@ -7,8 +7,9 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Microsoft.Office.Interop.Excel;
+//using Microsoft.Office.Interop.Excel;
 using Excel = Microsoft.Office.Interop.Excel;
+//using System.Data.OleDb;
 
 namespace BUPicksList
 {
@@ -51,17 +52,40 @@ namespace BUPicksList
             try
             {
                 //Fetches sheet with master list data
+                /*
                 xlApp = new Excel.Application();
                 xlWorkbook = xlApp.Workbooks.Open(masterData);
                 Excel.Worksheet sheet = xlWorkbook.Sheets[1];
-
+                
                 OLEDB.OleDbConnection MyConn;
                 OLEDB.OleDbCommand myCommand = new OLEDB.OleDbCommand();
                 DataSet dataSet;
-                OLEDB.OleDbDataAdapter adapter;
+                OLEDB.OleDbDataAdapter adapter = new ;
                 String sql = null;
                 MyConn = new OLEDB.OleDbConnection(string.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0 Xml; HDR = YES\"", (path + masterData)));
+                */
 
+                using (OLEDB.OleDbConnection conn = returnConnection("dummy string"))
+                {
+                    try
+                    {
+                        conn.Open();
+                        OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
+                        cmd.Connection = conn;
+                        cmd.CommandText = @"Insert Into [Test sheet$] (RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType) "
+                            + "Select * From [MasterData$];";
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
+                    finally
+                    {
+                        conn.Close();
+                        conn.Dispose();
+                    }
+                }
                 
 
 
@@ -75,7 +99,7 @@ namespace BUPicksList
             {
                 MessageBox.Show(ex.ToString());
             }
-            createNewFile("testing");
+            //createNewFile("testing");
         }
 
         private void AddRoomButton_Click(object sender, EventArgs e)
@@ -179,7 +203,7 @@ namespace BUPicksList
             Excel.Worksheet newsheet = wkbook.Sheets.Add(After: wkbook.Sheets[wkbook.Sheets.Count]);
             Excel.Worksheet oldsheet = wkbook.Sheets[1];
             Excel.Range range = oldsheet.UsedRange;
-            range.AutoFilter(Field: 9, Criteria1: "#N/A", Operator: XlAutoFilterOperator.xlOr, Criteria2: "Located");
+            //range.AutoFilter(Field: 9, Criteria1: "#N/A", Operator: XlAutoFilterOperator.xlOr, Criteria2: "Located");
             range.Copy(Missing.Value);
             newsheet.UsedRange.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, Missing.Value, Missing.Value);
 
@@ -192,6 +216,24 @@ namespace BUPicksList
             newsheet.Name = "Test";
             Marshal.ReleaseComObject(newsheet);
             Marshal.ReleaseComObject(oldsheet);
+        }
+
+        private OLEDB.OleDbConnection returnConnection(string fileName)
+        {
+            return new OLEDB.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + path + masterData + ";Extended Properties=\"Excel 12.0 Xml; HDR = YES\"");
+        }
+
+        private DataSet loadMasterSheet(string fileName, string sheetName)
+        {
+            DataSet sheetData = new DataSet();
+            using (OLEDB.OleDbConnection conn = this.returnConnection(fileName))
+            {
+                conn.Open();
+                // retrieve the data using data adapter
+                OLEDB.OleDbDataAdapter sheetAdapter = new OLEDB.OleDbDataAdapter("select * from [" + sheetName + "]", conn);
+                sheetAdapter.Fill(sheetData);
+            }
+            return sheetData;
         }
     }
 }
