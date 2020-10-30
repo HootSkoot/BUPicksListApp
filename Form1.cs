@@ -72,13 +72,15 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Insert Into [Test sheet$] (RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType) "
-                            + "Select * From [MasterData$];";
+                        cmd.CommandText = @"Create Table Testsheet(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.ExecuteNonQuery();
+                        cmd.CommandText = @"Insert Into [Testsheet$] Select * From [MasterData$] Where Status<>'Missing';";
+                        //values(RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType)
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine(ex.ToString());
+                        Console.WriteLine(ex.Message);
                     }
                     finally
                     {
@@ -120,6 +122,7 @@ namespace BUPicksList
         {
             OpenFileDialog dlg = new OpenFileDialog();
             //dlg.ShowDialog();
+
             
             if (dlg.ShowDialog() == DialogResult.OK) 
             {
@@ -146,7 +149,7 @@ namespace BUPicksList
                 newxlWorkSheet = newXLWorkbook.Sheets[1];
                 newxlWorkSheet.Name = "MasterData";
                 newxlWorkSheet.UsedRange.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
-                newxlWorkSheet.Cells[1,9] = "Missing?";
+                newxlWorkSheet.Cells[1,9] = "Status";
                 newxlWorkSheet.Cells[5,9] = formula;
 
                 lastUsedRow = newxlWorkSheet.Cells.Find("*", misValue,
@@ -156,7 +159,15 @@ namespace BUPicksList
 
                 newxlWorkSheet.Range["i2", "i" + lastUsedRow].FormulaR1C1 = formula;
                 //newxlWorkSheet.Range["J3", newxlWorkSheet.UsedRange.RowHeight - 1].FormulaR1C1 = formula;
+
                 newxlWorkSheet.Calculate();
+                //Testing copying over formulas
+                //'J' is the column with the formula inserted
+                ReplaceFormulasWithValues(ref newxlWorkSheet, 'J');
+                
+                //range.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, Missing.Value, Missing.Value);
+                //end test
+
                 masterData = "ExpenseDeliveryManagement " + DateTime.Now.ToString("mm-dd-yyyy") + " - " + DateTime.Now.ToString("hh tt") + ".xlsx";
                 newXLWorkbook.SaveAs(masterData);
                 xlWorkbook.Close(true,misValue,misValue);
@@ -220,7 +231,7 @@ namespace BUPicksList
 
         private OLEDB.OleDbConnection returnConnection(string fileName)
         {
-            return new OLEDB.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + path + masterData + ";Extended Properties=\"Excel 12.0 Xml; HDR = YES\"");
+            return new OLEDB.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData + ";Extended Properties=\"Excel 12.0 Xml; HDR = YES\"");
         }
 
         private DataSet loadMasterSheet(string fileName, string sheetName)
@@ -234,6 +245,15 @@ namespace BUPicksList
                 sheetAdapter.Fill(sheetData);
             }
             return sheetData;
+        }
+
+        private static void ReplaceFormulasWithValues(ref Excel.Worksheet sheet, char column)
+        {
+            object misValue = System.Reflection.Missing.Value;
+            Excel.Range range = (Excel.Range)sheet.get_Range(column + "1", Missing.Value).EntireColumn;
+            range.Copy();
+            range.PasteSpecial(Microsoft.Office.Interop.Excel.XlPasteType.xlPasteValues,
+              Microsoft.Office.Interop.Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
         }
     }
 }
