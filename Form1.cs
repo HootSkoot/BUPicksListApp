@@ -163,8 +163,12 @@ namespace BUPicksList
                 newxlWorkSheet.Calculate();
                 //Testing copying over formulas
                 //'J' is the column with the formula inserted
-                ReplaceFormulasWithValues(ref newxlWorkSheet, 'J');
                 
+
+
+                //Excel.Range range = (Excel.Range)newxlWorkSheet.Range["i2"].EntireColumn;
+                //newxlWorkSheet.Range["i2", "i" + lastUsedRow].PasteSpecial(Microsoft.Office.Interop.Excel.XlPasteType.xlPasteValues,Microsoft.Office.Interop.Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
+
                 //range.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, Missing.Value, Missing.Value);
                 //end test
 
@@ -180,7 +184,9 @@ namespace BUPicksList
                 Marshal.ReleaseComObject(newxlWorkSheet);
                 Marshal.ReleaseComObject(xlApp);
 
-                
+                ReplaceFormulasWithValues();
+
+
 
 
             }
@@ -247,13 +253,24 @@ namespace BUPicksList
             return sheetData;
         }
 
-        private static void ReplaceFormulasWithValues(ref Excel.Worksheet sheet, char column)
+        private void ReplaceFormulasWithValues()
         {
-            object misValue = System.Reflection.Missing.Value;
-            Excel.Range range = (Excel.Range)sheet.get_Range(column + "1", Missing.Value).EntireColumn;
-            range.Copy();
-            range.PasteSpecial(Microsoft.Office.Interop.Excel.XlPasteType.xlPasteValues,
-              Microsoft.Office.Interop.Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
+            xlApp = new Excel.Application();
+            xlWorkbook = xlApp.Workbooks.Open(masterData);
+            xlWorkSheet = xlWorkbook.Sheets[1];
+            Excel.Range range = (Excel.Range)xlWorkSheet.UsedRange.Columns["I:I",Type.Missing];
+            range.Copy(Type.Missing);
+            range.PasteSpecial(Excel.XlPasteType.xlPasteValues,Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
+
+            //standard close out of INterop
+            xlWorkbook.Save();
+            xlWorkbook.Close(true, Missing.Value, Missing.Value);
+            xlApp.Quit();
+            Marshal.ReleaseComObject(xlWorkSheet);
+            Marshal.ReleaseComObject(xlWorkbook);
+            //Marshal.ReleaseComObject(newXLWorkbook);
+            //Marshal.ReleaseComObject(newxlWorkSheet);
+            Marshal.ReleaseComObject(xlApp);
         }
     }
 }
