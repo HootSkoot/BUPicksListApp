@@ -23,7 +23,7 @@ namespace BUPicksList
         private Excel.Worksheet newxlWorkSheet;
         private string formula = "=IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
         private int lastUsedRow;
-        private string masterData;
+        private string masterData = "";
         private string path;
         public Form1()
         {
@@ -48,59 +48,16 @@ namespace BUPicksList
 
         private void CreateButton_Click(object sender, EventArgs e)
         {
-            //Create a DataSet to use for following operations
-            try
+            if (masterData != "")
             {
-                //Fetches sheet with master list data
-                /*
-                xlApp = new Excel.Application();
-                xlWorkbook = xlApp.Workbooks.Open(masterData);
-                Excel.Worksheet sheet = xlWorkbook.Sheets[1];
-                
-                OLEDB.OleDbConnection MyConn;
-                OLEDB.OleDbCommand myCommand = new OLEDB.OleDbCommand();
-                DataSet dataSet;
-                OLEDB.OleDbDataAdapter adapter = new ;
-                String sql = null;
-                MyConn = new OLEDB.OleDbConnection(string.Format("Provider=Microsoft.ACE.OLEDB.12.0;Data Source={0};Extended Properties=\"Excel 12.0 Xml; HDR = YES\"", (path + masterData)));
-                */
-
-                using (OLEDB.OleDbConnection conn = returnConnection("dummy string"))
+                foreach (String roomName in Properties.Settings.Default.RoomList)
                 {
-                    try
-                    {
-                        conn.Open();
-                        OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
-                        cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table Testsheet(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
-                        cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [Testsheet$] Select * From [MasterData$] Where Status<>'Missing';";
-                        //values(RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType)
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.Message);
-                    }
-                    finally
-                    {
-                        conn.Close();
-                        conn.Dispose();
-                    }
+                    Console.WriteLine(roomName);
+                    CreateNormalSheet(roomName);
                 }
-                
-
-
-                
-                
-                
-                
-
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
+            
+           
             //createNewFile("testing");
         }
 
@@ -193,26 +150,7 @@ namespace BUPicksList
             
         }
 
-        private void createNewFile(string filename)
-        {
-            xlApp = new Excel.Application();
-            xlWorkbook = xlApp.Workbooks.Open(masterData);
-
-            Excel.Worksheet sheet = xlWorkbook.Sheets[1];
-            //sheet.UsedRange.Copy(Missing.Value);
-            //sheet.UsedRange.PasteSpecial(Excel.XlPasteType.xlPasteValues, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, Missing.Value, Missing.Value);
-
-            createSheet("test", xlWorkbook);
-
-            xlWorkbook.Save();
-            xlWorkbook.Close(true, Missing.Value, Missing.Value);
-            xlApp.Quit();
-            Marshal.ReleaseComObject(xlWorkSheet);
-            Marshal.ReleaseComObject(xlWorkbook);
-            Marshal.ReleaseComObject(newXLWorkbook);
-            Marshal.ReleaseComObject(newxlWorkSheet);
-            Marshal.ReleaseComObject(xlApp);
-        }
+        
 
         private void createSheet(string BUname, Excel.Workbook wkbook)
         {
@@ -235,7 +173,7 @@ namespace BUPicksList
             Marshal.ReleaseComObject(oldsheet);
         }
 
-        private OLEDB.OleDbConnection returnConnection(string fileName)
+        private OLEDB.OleDbConnection returnConnection()
         {
             return new OLEDB.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData + ";Extended Properties=\"Excel 12.0 Xml; HDR = YES\"");
         }
@@ -243,7 +181,7 @@ namespace BUPicksList
         private DataSet loadMasterSheet(string fileName, string sheetName)
         {
             DataSet sheetData = new DataSet();
-            using (OLEDB.OleDbConnection conn = this.returnConnection(fileName))
+            using (OLEDB.OleDbConnection conn = this.returnConnection())
             {
                 conn.Open();
                 // retrieve the data using data adapter
@@ -271,6 +209,41 @@ namespace BUPicksList
             //Marshal.ReleaseComObject(newXLWorkbook);
             //Marshal.ReleaseComObject(newxlWorkSheet);
             Marshal.ReleaseComObject(xlApp);
+        }
+
+        private void CreateNormalSheet(String roomName)
+        {
+            try
+            {
+                //Fetches sheet with master list data
+
+                using (OLEDB.OleDbConnection conn = returnConnection())
+                {
+                    try
+                    {
+                        conn.Open();
+                        OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
+                        cmd.Connection = conn;
+                        cmd.CommandText = @"Create Table " + roomName.Replace(' ','_').Replace('-','_') + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.ExecuteNonQuery();
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select * From [MasterData$] Where Status<>'Missing' and BUStaging='" + roomName + "' and (PackageType NOT LIKE '%Large%' and PackageType NOT LIKE '%Crate%') and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
+                    finally
+                    {
+                        conn.Close();
+                        conn.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
     }
 }
