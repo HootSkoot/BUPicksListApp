@@ -44,6 +44,11 @@ namespace BUPicksList
         {
             BUListBox.DataSource = Properties.Settings.Default.BUList.Cast<string>().ToArray();
         }
+
+        private void fillBuildingBox()
+        {
+            BuildingListBox.DataSource = Properties.Settings.Default.BuildingList.Cast<string>().ToArray();
+        }
         
 
         private void CreateButton_Click(object sender, EventArgs e)
@@ -227,6 +232,41 @@ namespace BUPicksList
                         cmd.CommandText = @"Create Table " + roomName.Replace(' ','_').Replace('-','_') + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
                         cmd.ExecuteNonQuery();
                         cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select * From [MasterData$] Where Status<>'Missing' and BUStaging='" + roomName + "' and (PackageType NOT LIKE '%Large%' and PackageType NOT LIKE '%Crate%') and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
+                        cmd.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
+                    finally
+                    {
+                        conn.Close();
+                        conn.Dispose();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
+        }
+
+        private void CreateAttemptedSheet(String roomName)
+        {
+            try
+            {
+                //Fetches sheet with master list data
+
+                using (OLEDB.OleDbConnection conn = returnConnection())
+                {
+                    try
+                    {
+                        conn.Open();
+                        OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
+                        cmd.Connection = conn;
+                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.ExecuteNonQuery();
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select * From [MasterData$] Where Status<>'Missing' and BUStaging='" + roomName + "' and (PackageType NOT LIKE '%Large%' and PackageType NOT LIKE '%Crate%') and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location LIKE '%attempt%' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
