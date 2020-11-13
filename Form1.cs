@@ -30,7 +30,8 @@ namespace BUPicksList
             InitializeComponent();
             fillRoomBox();
             fillBUBox();
-
+            fillBuildingBox();
+            fillSizeBox();
 
 
         }
@@ -49,6 +50,11 @@ namespace BUPicksList
         {
             BuildingListBox.DataSource = Properties.Settings.Default.BuildingList.Cast<string>().ToArray();
         }
+
+        private void fillSizeBox()
+        {
+            SizeListBox.DataSource = Properties.Settings.Default.SizeList.Cast<string>().ToArray();
+        }
         
 
         private void CreateButton_Click(object sender, EventArgs e)
@@ -60,10 +66,15 @@ namespace BUPicksList
                     Console.WriteLine(roomName);
                     CreateNormalSheet(roomName);
                 }
+                foreach (String buildingName in Properties.Settings.Default.BuildingList)
+                {
+                    Console.WriteLine(buildingName);
+                    CreateAttemptedSheet(buildingName);
+                }
             }
             
            
-            //createNewFile("testing");
+            
         }
 
         private void AddRoomButton_Click(object sender, EventArgs e)
@@ -78,6 +89,20 @@ namespace BUPicksList
             Properties.Settings.Default.BUList.Add(BUTextBox.Text);
             Properties.Settings.Default.Save();
             fillBUBox();
+        }
+
+        private void AddBuildingButton_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.BuildingList.Add(BuildingTextBox.Text);
+            Properties.Settings.Default.Save();
+            fillBuildingBox();
+        }
+
+        private void SizeButton_Click(object sender, EventArgs e)
+        {
+            Properties.Settings.Default.SizeList.Add(SizeTextBox.Text);
+            Properties.Settings.Default.Save();
+            fillSizeBox();
         }
 
         private void BrowseButton_Click(object sender, EventArgs e)
@@ -231,7 +256,7 @@ namespace BUPicksList
                         cmd.Connection = conn;
                         cmd.CommandText = @"Create Table " + roomName.Replace(' ','_').Replace('-','_') + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select * From [MasterData$] Where Status<>'Missing' and BUStaging='" + roomName + "' and (PackageType NOT LIKE '%Large%' and PackageType NOT LIKE '%Crate%') and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select * From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -251,7 +276,7 @@ namespace BUPicksList
             }
         }
 
-        private void CreateAttemptedSheet(String roomName)
+        private void CreateAttemptedSheet(String buildingName)
         {
             try
             {
@@ -264,9 +289,9 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.CommandText = @"Create Table " + buildingName.Replace(' ', '_').Replace('-', '_') + "Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select * From [MasterData$] Where Status<>'Missing' and BUStaging='" + roomName + "' and (PackageType NOT LIKE '%Large%' and PackageType NOT LIKE '%Crate%') and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location LIKE '%attempt%' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + buildingName.Replace(' ', '_').Replace('-', '_') + "Attempted$] Select * From [MasterData$] Where Status<>'Missing' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%versum%' and Location LIKE '%" + buildingName + "%attempt%' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -284,6 +309,33 @@ namespace BUPicksList
             {
                 MessageBox.Show(ex.ToString());
             }
+        }
+
+        //Returns a string form of the large size list
+        private string SizeListString()
+        {
+            string value = "(";
+            int count = 0;
+
+            if (Properties.Settings.Default.SizeList.Count != 0)
+            {
+                foreach (String size in Properties.Settings.Default.SizeList)
+                {
+                    value += "'" + size + "'";
+                    count += 1;
+                    if (count != Properties.Settings.Default.SizeList.Count)
+                    {
+                        value += ",";
+                    }
+                }
+                value += ")";
+            }
+            else
+            {
+                value = "('Large (> 35 lbs)','Crate')";
+            }
+
+            return value;
         }
     }
 }

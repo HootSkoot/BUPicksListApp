@@ -65,5 +65,19 @@ namespace BUPicksList.Properties {
                 this["BuildingList"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("<?xml version=\"1.0\" encoding=\"utf-16\"?>\r\n<ArrayOfString xmlns:xsi=\"http://www.w3." +
+            "org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\r\n  <s" +
+            "tring>Large (&gt; 35 lbs)</string>\r\n  <string>Crate</string>\r\n</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection SizeList {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["SizeList"]));
+            }
+            set {
+                this["SizeList"] = value;
+            }
+        }
     }
 }
