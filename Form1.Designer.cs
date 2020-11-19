@@ -44,6 +44,12 @@
             this.SizeListBox = new System.Windows.Forms.ListBox();
             this.SizeTextBox = new System.Windows.Forms.TextBox();
             this.SizeButton = new System.Windows.Forms.Button();
+            this.DeleteRoomButton = new System.Windows.Forms.Button();
+            this.RemoveBUButton = new System.Windows.Forms.Button();
+            this.RemoveBuildingButton = new System.Windows.Forms.Button();
+            this.RemoveSizeButton = new System.Windows.Forms.Button();
+            this.LocateMissingButton = new System.Windows.Forms.Button();
+            this.MissingListLabel = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -60,26 +66,33 @@
             this.tableLayoutPanel1.Controls.Add(this.BUListBox, 1, 0);
             this.tableLayoutPanel1.Controls.Add(this.AddBUButton, 1, 2);
             this.tableLayoutPanel1.Controls.Add(this.AddRoomButton, 0, 2);
-            this.tableLayoutPanel1.Controls.Add(this.BrowseButton, 0, 4);
-            this.tableLayoutPanel1.Controls.Add(this.CreateButton, 1, 4);
-            this.tableLayoutPanel1.Controls.Add(this.FileLabel, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.BrowseButton, 0, 5);
+            this.tableLayoutPanel1.Controls.Add(this.CreateButton, 1, 5);
             this.tableLayoutPanel1.Controls.Add(this.BuildingListBox, 2, 0);
             this.tableLayoutPanel1.Controls.Add(this.BuildingTextBox, 2, 1);
             this.tableLayoutPanel1.Controls.Add(this.AddBuildingButton, 2, 2);
             this.tableLayoutPanel1.Controls.Add(this.SizeListBox, 3, 0);
             this.tableLayoutPanel1.Controls.Add(this.SizeTextBox, 3, 1);
             this.tableLayoutPanel1.Controls.Add(this.SizeButton, 3, 2);
+            this.tableLayoutPanel1.Controls.Add(this.FileLabel, 0, 4);
+            this.tableLayoutPanel1.Controls.Add(this.DeleteRoomButton, 0, 3);
+            this.tableLayoutPanel1.Controls.Add(this.RemoveBUButton, 1, 3);
+            this.tableLayoutPanel1.Controls.Add(this.RemoveBuildingButton, 2, 3);
+            this.tableLayoutPanel1.Controls.Add(this.RemoveSizeButton, 3, 3);
+            this.tableLayoutPanel1.Controls.Add(this.LocateMissingButton, 2, 5);
+            this.tableLayoutPanel1.Controls.Add(this.MissingListLabel, 2, 4);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 5;
+            this.tableLayoutPanel1.RowCount = 6;
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 35F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 6F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(735, 392);
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(735, 436);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // RoomList
@@ -149,10 +162,10 @@
             // BrowseButton
             // 
             this.BrowseButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.BrowseButton.Location = new System.Drawing.Point(3, 360);
+            this.BrowseButton.Location = new System.Drawing.Point(3, 396);
             this.BrowseButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.BrowseButton.Name = "BrowseButton";
-            this.BrowseButton.Size = new System.Drawing.Size(177, 30);
+            this.BrowseButton.Size = new System.Drawing.Size(177, 38);
             this.BrowseButton.TabIndex = 7;
             this.BrowseButton.Text = "Browse";
             this.BrowseButton.UseVisualStyleBackColor = true;
@@ -161,10 +174,10 @@
             // CreateButton
             // 
             this.CreateButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.CreateButton.Location = new System.Drawing.Point(186, 360);
+            this.CreateButton.Location = new System.Drawing.Point(186, 396);
             this.CreateButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.CreateButton.Name = "CreateButton";
-            this.CreateButton.Size = new System.Drawing.Size(177, 30);
+            this.CreateButton.Size = new System.Drawing.Size(177, 38);
             this.CreateButton.TabIndex = 8;
             this.CreateButton.Text = "Create";
             this.CreateButton.UseVisualStyleBackColor = true;
@@ -175,9 +188,9 @@
             this.FileLabel.AutoSize = true;
             this.tableLayoutPanel1.SetColumnSpan(this.FileLabel, 2);
             this.FileLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.FileLabel.Location = new System.Drawing.Point(3, 323);
+            this.FileLabel.Location = new System.Drawing.Point(3, 358);
             this.FileLabel.Name = "FileLabel";
-            this.FileLabel.Size = new System.Drawing.Size(360, 35);
+            this.FileLabel.Size = new System.Drawing.Size(360, 36);
             this.FileLabel.TabIndex = 9;
             this.FileLabel.Text = "New File Name";
             // 
@@ -239,11 +252,76 @@
             this.SizeButton.UseVisualStyleBackColor = true;
             this.SizeButton.Click += new System.EventHandler(this.SizeButton_Click);
             // 
+            // DeleteRoomButton
+            // 
+            this.DeleteRoomButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.DeleteRoomButton.Location = new System.Drawing.Point(3, 326);
+            this.DeleteRoomButton.Name = "DeleteRoomButton";
+            this.DeleteRoomButton.Size = new System.Drawing.Size(177, 29);
+            this.DeleteRoomButton.TabIndex = 16;
+            this.DeleteRoomButton.Text = "Remove Room";
+            this.DeleteRoomButton.UseVisualStyleBackColor = true;
+            this.DeleteRoomButton.Click += new System.EventHandler(this.DeleteRoomButton_Click);
+            // 
+            // RemoveBUButton
+            // 
+            this.RemoveBUButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.RemoveBUButton.Location = new System.Drawing.Point(186, 326);
+            this.RemoveBUButton.Name = "RemoveBUButton";
+            this.RemoveBUButton.Size = new System.Drawing.Size(177, 29);
+            this.RemoveBUButton.TabIndex = 17;
+            this.RemoveBUButton.Text = "Remove BU";
+            this.RemoveBUButton.UseVisualStyleBackColor = true;
+            this.RemoveBUButton.Click += new System.EventHandler(this.RemoveBUButton_Click);
+            // 
+            // RemoveBuildingButton
+            // 
+            this.RemoveBuildingButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.RemoveBuildingButton.Location = new System.Drawing.Point(369, 326);
+            this.RemoveBuildingButton.Name = "RemoveBuildingButton";
+            this.RemoveBuildingButton.Size = new System.Drawing.Size(177, 29);
+            this.RemoveBuildingButton.TabIndex = 18;
+            this.RemoveBuildingButton.Text = "Remove Building";
+            this.RemoveBuildingButton.UseVisualStyleBackColor = true;
+            this.RemoveBuildingButton.Click += new System.EventHandler(this.RemoveBuildingButton_Click);
+            // 
+            // RemoveSizeButton
+            // 
+            this.RemoveSizeButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.RemoveSizeButton.Location = new System.Drawing.Point(552, 326);
+            this.RemoveSizeButton.Name = "RemoveSizeButton";
+            this.RemoveSizeButton.Size = new System.Drawing.Size(180, 29);
+            this.RemoveSizeButton.TabIndex = 19;
+            this.RemoveSizeButton.Text = "Remove Size";
+            this.RemoveSizeButton.UseVisualStyleBackColor = true;
+            this.RemoveSizeButton.Click += new System.EventHandler(this.RemoveSizeButton_Click);
+            // 
+            // LocateMissingButton
+            // 
+            this.LocateMissingButton.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.LocateMissingButton.Location = new System.Drawing.Point(369, 397);
+            this.LocateMissingButton.Name = "LocateMissingButton";
+            this.LocateMissingButton.Size = new System.Drawing.Size(177, 36);
+            this.LocateMissingButton.TabIndex = 20;
+            this.LocateMissingButton.Text = "Local Missing List";
+            this.LocateMissingButton.UseVisualStyleBackColor = true;
+            this.LocateMissingButton.Click += new System.EventHandler(this.LocateMissingButton_Click);
+            // 
+            // MissingListLabel
+            // 
+            this.MissingListLabel.AutoSize = true;
+            this.MissingListLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.MissingListLabel.Location = new System.Drawing.Point(369, 358);
+            this.MissingListLabel.Name = "MissingListLabel";
+            this.MissingListLabel.Size = new System.Drawing.Size(177, 36);
+            this.MissingListLabel.TabIndex = 21;
+            this.MissingListLabel.Text = "Missing List Directory";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(735, 392);
+            this.ClientSize = new System.Drawing.Size(735, 436);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "Form1";
@@ -272,6 +350,12 @@
         private System.Windows.Forms.ListBox SizeListBox;
         private System.Windows.Forms.TextBox SizeTextBox;
         private System.Windows.Forms.Button SizeButton;
+        private System.Windows.Forms.Button DeleteRoomButton;
+        private System.Windows.Forms.Button RemoveBUButton;
+        private System.Windows.Forms.Button RemoveBuildingButton;
+        private System.Windows.Forms.Button RemoveSizeButton;
+        private System.Windows.Forms.Button LocateMissingButton;
+        private System.Windows.Forms.Label MissingListLabel;
     }
 }
 
