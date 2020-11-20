@@ -335,7 +335,7 @@ namespace BUPicksList
                         cmd.Connection = conn;
                         cmd.CommandText = @"Create Table " + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted$] Select * From [MasterData$] Where Status<>'Missing' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%versum%' and Location LIKE '%" + buildingName + "%attempt%' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted$] Select * From [MasterData$] Where Status<>'Missing' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and (Location NOT LIKE '%versum%' and Location NOT LIKE '%MarkGruver%' and Location LIKE '%" + buildingName + "%attempt%') Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
