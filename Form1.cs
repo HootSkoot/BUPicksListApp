@@ -10,6 +10,7 @@ using System.Windows.Forms;
 //using Microsoft.Office.Interop.Excel;
 using Excel = Microsoft.Office.Interop.Excel;
 //using System.Data.OleDb;
+using ClosedExcel = ClosedXML.Excel;
 
 namespace BUPicksList
 {
@@ -27,6 +28,7 @@ namespace BUPicksList
         private int lastUsedRow;
         private string masterData = "";
         private string path;
+        private string masterDataPath;
         public Form1()
         {
             InitializeComponent();
@@ -99,6 +101,17 @@ namespace BUPicksList
                         Console.WriteLine(roomName);
                         CreateLargeAttemptedSheet(roomName);
                     }
+                }
+                using (var workbook = new ClosedExcel.XLWorkbook(masterDataPath))
+                {
+                    foreach (var sheet in workbook.Worksheets)
+                    {
+                        if (sheet.LastRowUsed().RowNumber() == 1)
+                        {
+                            sheet.Hide();
+                        }
+                    }
+                    workbook.Save();
                 }
             }
             
@@ -185,6 +198,7 @@ namespace BUPicksList
                 //Sheet needs to be saved and closed to reset objects, turn the formulas into flat values
 
                 ReplaceFormulasWithValues();
+                masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
             }
             
         }

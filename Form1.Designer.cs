@@ -37,13 +37,13 @@
             this.AddRoomButton = new System.Windows.Forms.Button();
             this.BrowseButton = new System.Windows.Forms.Button();
             this.CreateButton = new System.Windows.Forms.Button();
-            this.FileLabel = new System.Windows.Forms.Label();
             this.BuildingListBox = new System.Windows.Forms.ListBox();
             this.BuildingTextBox = new System.Windows.Forms.TextBox();
             this.AddBuildingButton = new System.Windows.Forms.Button();
             this.SizeListBox = new System.Windows.Forms.ListBox();
             this.SizeTextBox = new System.Windows.Forms.TextBox();
             this.SizeButton = new System.Windows.Forms.Button();
+            this.FileLabel = new System.Windows.Forms.Label();
             this.DeleteRoomButton = new System.Windows.Forms.Button();
             this.RemoveBUButton = new System.Windows.Forms.Button();
             this.RemoveBuildingButton = new System.Windows.Forms.Button();
@@ -183,17 +183,6 @@
             this.CreateButton.UseVisualStyleBackColor = true;
             this.CreateButton.Click += new System.EventHandler(this.CreateButton_Click);
             // 
-            // FileLabel
-            // 
-            this.FileLabel.AutoSize = true;
-            this.tableLayoutPanel1.SetColumnSpan(this.FileLabel, 2);
-            this.FileLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.FileLabel.Location = new System.Drawing.Point(3, 358);
-            this.FileLabel.Name = "FileLabel";
-            this.FileLabel.Size = new System.Drawing.Size(360, 36);
-            this.FileLabel.TabIndex = 9;
-            this.FileLabel.Text = "New File Name";
-            // 
             // BuildingListBox
             // 
             this.BuildingListBox.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -251,6 +240,17 @@
             this.SizeButton.Text = "Add Size";
             this.SizeButton.UseVisualStyleBackColor = true;
             this.SizeButton.Click += new System.EventHandler(this.SizeButton_Click);
+            // 
+            // FileLabel
+            // 
+            this.FileLabel.AutoSize = true;
+            this.tableLayoutPanel1.SetColumnSpan(this.FileLabel, 2);
+            this.FileLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.FileLabel.Location = new System.Drawing.Point(3, 358);
+            this.FileLabel.Name = "FileLabel";
+            this.FileLabel.Size = new System.Drawing.Size(360, 36);
+            this.FileLabel.TabIndex = 9;
+            this.FileLabel.Text = "New File Name";
             // 
             // DeleteRoomButton
             // 
