@@ -110,6 +110,27 @@ namespace BUPicksList
                         {
                             sheet.Hide();
                         }
+                        else
+                        {
+                            switch (sheet.Name)
+                            {
+                                case string name when sheet.Name.Contains("Data"):
+                                    sheet.TabColor = ClosedExcel.XLColor.White;
+                                    break;
+                                case string name when sheet.Name.Contains("Large"):
+                                    sheet.TabColor = ClosedExcel.XLColor.Green;
+                                    break;
+                                case string name when sheet.Name.Contains("Attempted"):
+                                    sheet.TabColor = ClosedExcel.XLColor.Yellow;
+                                    break;
+                                case string name when sheet.Name.Contains("Large") && sheet.Name.Contains("Attempted"):
+                                    sheet.TabColor = ClosedExcel.XLColor.Orange;
+                                    break;
+                                default:
+                                    sheet.TabColor = ClosedExcel.XLColor.Blue;
+                                    break;
+                            }
+                        }
                     }
                     workbook.Save();
                 }
