@@ -50,6 +50,7 @@
             this.RemoveSizeButton = new System.Windows.Forms.Button();
             this.LocateMissingButton = new System.Windows.Forms.Button();
             this.MissingListLabel = new System.Windows.Forms.Label();
+            this.InfoLabel = new System.Windows.Forms.Label();
             this.tableLayoutPanel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -81,18 +82,20 @@
             this.tableLayoutPanel1.Controls.Add(this.RemoveSizeButton, 3, 3);
             this.tableLayoutPanel1.Controls.Add(this.LocateMissingButton, 2, 5);
             this.tableLayoutPanel1.Controls.Add(this.MissingListLabel, 2, 4);
+            this.tableLayoutPanel1.Controls.Add(this.InfoLabel, 0, 6);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(0, 0);
             this.tableLayoutPanel1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.tableLayoutPanel1.Name = "tableLayoutPanel1";
-            this.tableLayoutPanel1.RowCount = 6;
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle());
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 35F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 36F));
-            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Absolute, 8F));
-            this.tableLayoutPanel1.Size = new System.Drawing.Size(735, 436);
+            this.tableLayoutPanel1.RowCount = 7;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 48F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 6F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 6F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 10F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(735, 499);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
             // RoomList
@@ -103,13 +106,13 @@
             this.RoomList.Location = new System.Drawing.Point(3, 2);
             this.RoomList.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.RoomList.Name = "RoomList";
-            this.RoomList.Size = new System.Drawing.Size(177, 256);
+            this.RoomList.Size = new System.Drawing.Size(177, 235);
             this.RoomList.TabIndex = 0;
             // 
             // RoomTextBox
             // 
             this.RoomTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RoomTextBox.Location = new System.Drawing.Point(3, 262);
+            this.RoomTextBox.Location = new System.Drawing.Point(3, 241);
             this.RoomTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.RoomTextBox.Name = "RoomTextBox";
             this.RoomTextBox.Size = new System.Drawing.Size(177, 26);
@@ -118,7 +121,7 @@
             // BUTextBox
             // 
             this.BUTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.BUTextBox.Location = new System.Drawing.Point(186, 262);
+            this.BUTextBox.Location = new System.Drawing.Point(186, 241);
             this.BUTextBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.BUTextBox.Name = "BUTextBox";
             this.BUTextBox.Size = new System.Drawing.Size(177, 26);
@@ -132,16 +135,16 @@
             this.BUListBox.Location = new System.Drawing.Point(186, 2);
             this.BUListBox.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.BUListBox.Name = "BUListBox";
-            this.BUListBox.Size = new System.Drawing.Size(177, 256);
+            this.BUListBox.Size = new System.Drawing.Size(177, 235);
             this.BUListBox.TabIndex = 6;
             // 
             // AddBUButton
             // 
             this.AddBUButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.AddBUButton.Location = new System.Drawing.Point(186, 294);
+            this.AddBUButton.Location = new System.Drawing.Point(186, 270);
             this.AddBUButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.AddBUButton.Name = "AddBUButton";
-            this.AddBUButton.Size = new System.Drawing.Size(177, 27);
+            this.AddBUButton.Size = new System.Drawing.Size(177, 45);
             this.AddBUButton.TabIndex = 5;
             this.AddBUButton.Text = "Add BU";
             this.AddBUButton.UseVisualStyleBackColor = true;
@@ -150,10 +153,10 @@
             // AddRoomButton
             // 
             this.AddRoomButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.AddRoomButton.Location = new System.Drawing.Point(3, 294);
+            this.AddRoomButton.Location = new System.Drawing.Point(3, 270);
             this.AddRoomButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.AddRoomButton.Name = "AddRoomButton";
-            this.AddRoomButton.Size = new System.Drawing.Size(177, 27);
+            this.AddRoomButton.Size = new System.Drawing.Size(177, 45);
             this.AddRoomButton.TabIndex = 2;
             this.AddRoomButton.Text = "Add Room";
             this.AddRoomButton.UseVisualStyleBackColor = true;
@@ -162,10 +165,10 @@
             // BrowseButton
             // 
             this.BrowseButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.BrowseButton.Location = new System.Drawing.Point(3, 396);
+            this.BrowseButton.Location = new System.Drawing.Point(3, 397);
             this.BrowseButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.BrowseButton.Name = "BrowseButton";
-            this.BrowseButton.Size = new System.Drawing.Size(177, 38);
+            this.BrowseButton.Size = new System.Drawing.Size(177, 45);
             this.BrowseButton.TabIndex = 7;
             this.BrowseButton.Text = "Browse";
             this.BrowseButton.UseVisualStyleBackColor = true;
@@ -174,10 +177,10 @@
             // CreateButton
             // 
             this.CreateButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.CreateButton.Location = new System.Drawing.Point(186, 396);
+            this.CreateButton.Location = new System.Drawing.Point(186, 397);
             this.CreateButton.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.CreateButton.Name = "CreateButton";
-            this.CreateButton.Size = new System.Drawing.Size(177, 38);
+            this.CreateButton.Size = new System.Drawing.Size(177, 45);
             this.CreateButton.TabIndex = 8;
             this.CreateButton.Text = "Create";
             this.CreateButton.UseVisualStyleBackColor = true;
@@ -190,13 +193,13 @@
             this.BuildingListBox.ItemHeight = 20;
             this.BuildingListBox.Location = new System.Drawing.Point(369, 3);
             this.BuildingListBox.Name = "BuildingListBox";
-            this.BuildingListBox.Size = new System.Drawing.Size(177, 254);
+            this.BuildingListBox.Size = new System.Drawing.Size(177, 233);
             this.BuildingListBox.TabIndex = 10;
             // 
             // BuildingTextBox
             // 
             this.BuildingTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.BuildingTextBox.Location = new System.Drawing.Point(369, 263);
+            this.BuildingTextBox.Location = new System.Drawing.Point(369, 242);
             this.BuildingTextBox.Name = "BuildingTextBox";
             this.BuildingTextBox.Size = new System.Drawing.Size(177, 26);
             this.BuildingTextBox.TabIndex = 11;
@@ -204,9 +207,9 @@
             // AddBuildingButton
             // 
             this.AddBuildingButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.AddBuildingButton.Location = new System.Drawing.Point(369, 295);
+            this.AddBuildingButton.Location = new System.Drawing.Point(369, 271);
             this.AddBuildingButton.Name = "AddBuildingButton";
-            this.AddBuildingButton.Size = new System.Drawing.Size(177, 25);
+            this.AddBuildingButton.Size = new System.Drawing.Size(177, 43);
             this.AddBuildingButton.TabIndex = 12;
             this.AddBuildingButton.Text = "Add Building";
             this.AddBuildingButton.UseVisualStyleBackColor = true;
@@ -219,13 +222,13 @@
             this.SizeListBox.ItemHeight = 20;
             this.SizeListBox.Location = new System.Drawing.Point(552, 3);
             this.SizeListBox.Name = "SizeListBox";
-            this.SizeListBox.Size = new System.Drawing.Size(180, 254);
+            this.SizeListBox.Size = new System.Drawing.Size(180, 233);
             this.SizeListBox.TabIndex = 13;
             // 
             // SizeTextBox
             // 
             this.SizeTextBox.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.SizeTextBox.Location = new System.Drawing.Point(552, 263);
+            this.SizeTextBox.Location = new System.Drawing.Point(552, 242);
             this.SizeTextBox.Name = "SizeTextBox";
             this.SizeTextBox.Size = new System.Drawing.Size(180, 26);
             this.SizeTextBox.TabIndex = 14;
@@ -233,9 +236,9 @@
             // SizeButton
             // 
             this.SizeButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.SizeButton.Location = new System.Drawing.Point(552, 295);
+            this.SizeButton.Location = new System.Drawing.Point(552, 271);
             this.SizeButton.Name = "SizeButton";
-            this.SizeButton.Size = new System.Drawing.Size(180, 25);
+            this.SizeButton.Size = new System.Drawing.Size(180, 43);
             this.SizeButton.TabIndex = 15;
             this.SizeButton.Text = "Add Size";
             this.SizeButton.UseVisualStyleBackColor = true;
@@ -246,18 +249,18 @@
             this.FileLabel.AutoSize = true;
             this.tableLayoutPanel1.SetColumnSpan(this.FileLabel, 2);
             this.FileLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.FileLabel.Location = new System.Drawing.Point(3, 358);
+            this.FileLabel.Location = new System.Drawing.Point(3, 366);
             this.FileLabel.Name = "FileLabel";
-            this.FileLabel.Size = new System.Drawing.Size(360, 36);
+            this.FileLabel.Size = new System.Drawing.Size(360, 29);
             this.FileLabel.TabIndex = 9;
             this.FileLabel.Text = "New File Name";
             // 
             // DeleteRoomButton
             // 
             this.DeleteRoomButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.DeleteRoomButton.Location = new System.Drawing.Point(3, 326);
+            this.DeleteRoomButton.Location = new System.Drawing.Point(3, 320);
             this.DeleteRoomButton.Name = "DeleteRoomButton";
-            this.DeleteRoomButton.Size = new System.Drawing.Size(177, 29);
+            this.DeleteRoomButton.Size = new System.Drawing.Size(177, 43);
             this.DeleteRoomButton.TabIndex = 16;
             this.DeleteRoomButton.Text = "Remove Room";
             this.DeleteRoomButton.UseVisualStyleBackColor = true;
@@ -266,9 +269,9 @@
             // RemoveBUButton
             // 
             this.RemoveBUButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RemoveBUButton.Location = new System.Drawing.Point(186, 326);
+            this.RemoveBUButton.Location = new System.Drawing.Point(186, 320);
             this.RemoveBUButton.Name = "RemoveBUButton";
-            this.RemoveBUButton.Size = new System.Drawing.Size(177, 29);
+            this.RemoveBUButton.Size = new System.Drawing.Size(177, 43);
             this.RemoveBUButton.TabIndex = 17;
             this.RemoveBUButton.Text = "Remove BU";
             this.RemoveBUButton.UseVisualStyleBackColor = true;
@@ -277,9 +280,9 @@
             // RemoveBuildingButton
             // 
             this.RemoveBuildingButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RemoveBuildingButton.Location = new System.Drawing.Point(369, 326);
+            this.RemoveBuildingButton.Location = new System.Drawing.Point(369, 320);
             this.RemoveBuildingButton.Name = "RemoveBuildingButton";
-            this.RemoveBuildingButton.Size = new System.Drawing.Size(177, 29);
+            this.RemoveBuildingButton.Size = new System.Drawing.Size(177, 43);
             this.RemoveBuildingButton.TabIndex = 18;
             this.RemoveBuildingButton.Text = "Remove Building";
             this.RemoveBuildingButton.UseVisualStyleBackColor = true;
@@ -288,9 +291,9 @@
             // RemoveSizeButton
             // 
             this.RemoveSizeButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.RemoveSizeButton.Location = new System.Drawing.Point(552, 326);
+            this.RemoveSizeButton.Location = new System.Drawing.Point(552, 320);
             this.RemoveSizeButton.Name = "RemoveSizeButton";
-            this.RemoveSizeButton.Size = new System.Drawing.Size(180, 29);
+            this.RemoveSizeButton.Size = new System.Drawing.Size(180, 43);
             this.RemoveSizeButton.TabIndex = 19;
             this.RemoveSizeButton.Text = "Remove Size";
             this.RemoveSizeButton.UseVisualStyleBackColor = true;
@@ -299,9 +302,9 @@
             // LocateMissingButton
             // 
             this.LocateMissingButton.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.LocateMissingButton.Location = new System.Drawing.Point(369, 397);
+            this.LocateMissingButton.Location = new System.Drawing.Point(369, 398);
             this.LocateMissingButton.Name = "LocateMissingButton";
-            this.LocateMissingButton.Size = new System.Drawing.Size(177, 36);
+            this.LocateMissingButton.Size = new System.Drawing.Size(177, 43);
             this.LocateMissingButton.TabIndex = 20;
             this.LocateMissingButton.Text = "Local Missing List";
             this.LocateMissingButton.UseVisualStyleBackColor = true;
@@ -311,17 +314,29 @@
             // 
             this.MissingListLabel.AutoSize = true;
             this.MissingListLabel.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.MissingListLabel.Location = new System.Drawing.Point(369, 358);
+            this.MissingListLabel.Location = new System.Drawing.Point(369, 366);
             this.MissingListLabel.Name = "MissingListLabel";
-            this.MissingListLabel.Size = new System.Drawing.Size(177, 36);
+            this.MissingListLabel.Size = new System.Drawing.Size(177, 29);
             this.MissingListLabel.TabIndex = 21;
             this.MissingListLabel.Text = "Missing List Directory";
+            // 
+            // InfoLabel
+            // 
+            this.InfoLabel.AutoSize = true;
+            this.tableLayoutPanel1.SetColumnSpan(this.InfoLabel, 4);
+            this.InfoLabel.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.InfoLabel.Location = new System.Drawing.Point(3, 444);
+            this.InfoLabel.Name = "InfoLabel";
+            this.InfoLabel.Size = new System.Drawing.Size(729, 55);
+            this.InfoLabel.TabIndex = 22;
+            this.InfoLabel.Text = "Please enter in all names exactly as they appear, use missing list button if you " +
+    "can access the online version of the file.";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(735, 436);
+            this.ClientSize = new System.Drawing.Size(735, 499);
             this.Controls.Add(this.tableLayoutPanel1);
             this.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
             this.Name = "Form1";
@@ -356,6 +371,7 @@
         private System.Windows.Forms.Button RemoveSizeButton;
         private System.Windows.Forms.Button LocateMissingButton;
         private System.Windows.Forms.Label MissingListLabel;
+        private System.Windows.Forms.Label InfoLabel;
     }
 }
 
