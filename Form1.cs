@@ -142,30 +142,43 @@ namespace BUPicksList
         //adds the user entered string to the desired setting
         private void AddRoomButton_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.RoomList.Add(RoomTextBox.Text);
-            Properties.Settings.Default.Save();
-            fillRoomBox();
+            if (RoomTextBox.Text.Trim() != "")
+            {
+                Properties.Settings.Default.RoomList.Add(RoomTextBox.Text);
+                Properties.Settings.Default.Save();
+                fillRoomBox();
+            }
         }
 
         private void AddBUButton_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.BUList.Add(BUTextBox.Text);
-            Properties.Settings.Default.Save();
-            fillBUBox();
+            if (BUTextBox.Text.Trim() != "")
+            {
+                Properties.Settings.Default.BUList.Add(BUTextBox.Text);
+                Properties.Settings.Default.Save();
+                fillBUBox();
+            }
         }
 
         private void AddBuildingButton_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.BuildingList.Add(BuildingTextBox.Text);
-            Properties.Settings.Default.Save();
-            fillBuildingBox();
+            if (BuildingTextBox.Text.Trim() != "")
+            {
+                Properties.Settings.Default.BuildingList.Add(BuildingTextBox.Text);
+                Properties.Settings.Default.Save();
+                fillBuildingBox();
+            }
+            
         }
 
         private void SizeButton_Click(object sender, EventArgs e)
         {
-            Properties.Settings.Default.SizeList.Add(SizeTextBox.Text);
-            Properties.Settings.Default.Save();
-            fillSizeBox();
+            if (SizeTextBox.Text.Trim() != "")
+            {
+                Properties.Settings.Default.SizeList.Add(SizeTextBox.Text);
+                Properties.Settings.Default.Save();
+                fillSizeBox();
+            }
         }
 
         private void BrowseButton_Click(object sender, EventArgs e)
