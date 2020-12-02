@@ -253,7 +253,7 @@
             this.FileLabel.Name = "FileLabel";
             this.FileLabel.Size = new System.Drawing.Size(360, 29);
             this.FileLabel.TabIndex = 9;
-            this.FileLabel.Text = "New File Name";
+            this.FileLabel.Text = "Destination Directory";
             // 
             // DeleteRoomButton
             // 
@@ -330,7 +330,7 @@
             this.InfoLabel.Size = new System.Drawing.Size(729, 55);
             this.InfoLabel.TabIndex = 22;
             this.InfoLabel.Text = "Please enter in all names exactly as they appear, use missing list button if you " +
-    "can access the online version of the file.";
+    "can not access the online version of the file.";
             // 
             // Form1
             // 

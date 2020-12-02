@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Drawing;
 
 
 namespace BUPicksList
@@ -15,8 +16,8 @@ namespace BUPicksList
         [STAThread]
         static void Main()
         {
-            //Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
+            //Application.SetHighDpiMode(HighDpiMode.SystemAware); 
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
         }
