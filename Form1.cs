@@ -10,6 +10,7 @@ using System.Windows.Forms;
 //using Microsoft.Office.Interop.Excel;
 using Excel = Microsoft.Office.Interop.Excel;
 using ClosedExcel = ClosedXML.Excel;
+using System.Net;
 
 namespace BUPicksList
 {
@@ -17,10 +18,8 @@ namespace BUPicksList
     {
         private string pathfilename;
         private Excel.Application xlApp;
-        private Excel.Workbook xlWorkbook;
-        private Excel.Workbook newXLWorkbook;
-        private Excel.Worksheet xlWorkSheet;
-        private Excel.Worksheet newxlWorkSheet;
+        private ClosedXML.Excel.XLWorkbook xlWorkbook;
+        private ClosedXML.Excel.XLWorkbook newXLWorkbook;
         private static string defaultMissingDirectory = "https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/";
         private string formula = "=IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
         private string formulaModified = "=IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
@@ -28,6 +27,7 @@ namespace BUPicksList
         private string masterData = "";
         private string path;
         private string masterDataPath;
+        private string missingFilePath = "https://mydrive.amat.com/:x:/r/personal/abisheik_mani_contractor_amat_com/Documents/BU%20Delivery%20Process/BU_Pick_Schedule.xlsx?d=wc1badf9411494be8bc10fe4c675e6b14&csf=1&web=1&e=YlpIFx";
         public Form1()
         {
             InitializeComponent();
@@ -186,55 +186,108 @@ namespace BUPicksList
 
             if (dlg.ShowDialog() == DialogResult.OK) 
             {
-                xlApp = new Excel.Application();
-                //get name of file and path
+                
                 pathfilename = dlg.FileName;
                 FileLabel.Text = Path.GetDirectoryName(dlg.FileName);
                 path = Path.GetDirectoryName(dlg.FileName);
 
                 //get raw data as a sheet
-                object misValue = System.Reflection.Missing.Value;     
-                xlWorkbook = xlApp.Workbooks.Open(pathfilename);
-                xlWorkSheet = xlWorkbook.Sheets[1];
-                xlWorkSheet.UsedRange.Copy(Missing.Value);
-                
+                object misValue = System.Reflection.Missing.Value;
+                xlWorkbook = new ClosedXML.Excel.XLWorkbook(pathfilename);
+                var xlWorkSheet = xlWorkbook.Worksheet(1);
+                var firstCell = xlWorkSheet.FirstCellUsed();
+                var lastCell = xlWorkSheet.LastCellUsed();
+                var range = xlWorkSheet.Range(firstCell.Address, lastCell.Address);
+
+
 
                 //create base workbook
-                newXLWorkbook = xlApp.Workbooks.Add(Missing.Value);
-                newxlWorkSheet = newXLWorkbook.Sheets[1];
-                newxlWorkSheet.Name = "MasterData";
-                //insert desired formula
-                newxlWorkSheet.UsedRange.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
-                newxlWorkSheet.Cells[1,9] = "Status";
-                newxlWorkSheet.Cells[5,9] = formula;
-
-                lastUsedRow = newxlWorkSheet.Cells.Find("*", misValue,
-                               misValue, misValue,
-                               Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlPrevious,
-                               false, misValue, misValue).Row;
-
-                newxlWorkSheet.Range["i2", "i" + lastUsedRow].FormulaR1C1 = formula;
-                //Ensure that the sheet formulas have resolved
-                newxlWorkSheet.Calculate();
-
                 masterData = "ExpenseDeliveryManagement " + DateTime.Now.ToString("mm-dd-yyyy") + " - " + DateTime.Now.ToString("hh tt") + ".xlsx";
-                newXLWorkbook.SaveAs(masterData);
-                xlWorkbook.Close(true,misValue,misValue);
-                newXLWorkbook.Close(true, misValue, misValue);
+                var newXLWorkbook = new ClosedXML.Excel.XLWorkbook();
+                var newxlWorkSheet = newXLWorkbook.Worksheets.Add("MasterData");
+                newxlWorkSheet.Cell(1, 1).Value = range;
+                MissingList();
+                //var missingList = new ClosedExcel.XLWorkbook("https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/BU_Pick_Schedule.xlsx");
+                //missingList.Worksheet(1).CopyTo(newXLWorkbook, "B21-MissingList");
 
-                xlApp.Quit();
-                Marshal.ReleaseComObject(xlWorkSheet);
-                Marshal.ReleaseComObject(xlWorkbook);
-                Marshal.ReleaseComObject(newXLWorkbook);
-                Marshal.ReleaseComObject(newxlWorkSheet);
-                Marshal.ReleaseComObject(xlApp);
+
+                //insert desired formula
+
+                newxlWorkSheet.Cell(1,9).Value = "Status";
+                firstCell = newxlWorkSheet.FirstRowUsed().RowBelow().LastCellUsed().CellRight();
+                lastCell = newxlWorkSheet.LastRowUsed().LastCellUsed().CellRight();
+                range = newxlWorkSheet.Range(firstCell.Address, lastCell.Address);
+                range.FormulaR1C1 = formula;
+
+                //Ensure that the sheet formulas have resolved
+                masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
+                newXLWorkbook.CalculateMode = ClosedExcel.XLCalculateMode.Auto;
+                newXLWorkbook.SaveAs(masterDataPath);
+                foreach (var cell in range.CellsUsed())
+                {
+                    var result = newxlWorkSheet.Cell(cell.Address).CachedValue;
+                    cell.Value = result;
+                }
+
+
+
+
                 //Sheet needs to be saved and closed to reset objects, turn the formulas into flat values
 
-                ReplaceFormulasWithValues();
-                masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
+                //ReplaceFormulasWithValues();
+                
+                
             }
             
         }
+
+        private void MissingList()
+        {
+            FileStream fileStream = null;
+            FileStream fstream = null;
+            try
+            {
+                //missingFilePath = missingFilePath.Replace( "/", "\\");
+                //missingFilePath = missingFilePath.Replace("https:", "");
+                //missingFilePath = missingFilePath.Replace(" ", "%20");
+                //fileStream = new MemoryStream(File.ReadAllBytes(missingFilePath));
+                String fileName = Path.GetFileName(missingFilePath);
+                //Stream stream = File.Open(missingFilePath, FileMode.Open);
+                byte[] data;
+                byte[] buffer = new byte[2048];
+                WebRequest request = WebRequest.Create(missingFilePath);
+                using (WebResponse response = request.GetResponse())
+                {
+                    using (Stream responseStream = response.GetResponseStream())
+                    {
+                        using (MemoryStream ms = new MemoryStream())
+                        {
+                            int count = 0;
+                            do
+                            {
+                                count = responseStream.Read(buffer, 0, buffer.Length);
+                                ms.Write(buffer, 0, count);
+                            } while (count != 0);
+                            data = ms.ToArray();
+                        }
+                    }
+                }
+                string filePath = "Docs";
+                using (fstream = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite))
+                {
+                    fstream.Write(data, 0, data.Length);
+                    fstream.Close();
+                }
+                
+            }
+            catch (FileFormatException ex)
+            {
+                //null;
+            }
+            
+            
+        }
+        
 
         //Create a reuseable OLEDB connection
         private OLEDB.OleDbConnection returnConnection()
@@ -244,6 +297,7 @@ namespace BUPicksList
 
         private void ReplaceFormulasWithValues()
         {
+            /*
             xlApp = new Excel.Application();
             xlWorkbook = xlApp.Workbooks.Open(masterData);
             xlWorkSheet = xlWorkbook.Sheets[1];
@@ -260,6 +314,7 @@ namespace BUPicksList
             //Marshal.ReleaseComObject(newXLWorkbook);
             //Marshal.ReleaseComObject(newxlWorkSheet);
             Marshal.ReleaseComObject(xlApp);
+            */
         }
 
         private void CreateNormalSheet(String roomName)
