@@ -7,27 +7,18 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OfficeOpenXml;
-using ClosedExcel = ClosedXML.Excel;
-using System.Net;
-using Microsoft.SharePoint;
 
 namespace BUPicksList
 {
     public partial class Form1 : Form
     {
         private string pathfilename;
-        private ClosedXML.Excel.XLWorkbook xlWorkbook;
-        private ClosedXML.Excel.XLWorkbook newXLWorkbook;
-        private ClosedXML.Excel.XLWorkbook tempBook;
         private static string defaultMissingDirectory = "https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/";
         private string formula = "=IFERROR(VLOOKUP(RC[-8],'" + "[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
-        //private string formula = "=IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
         private string formulaModified = "=IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
         private string formulaCopiedSheet = "IFERROR(VLOOKUP(RC[-8],'MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'MissingList'!C2:C5,4,FALSE)))";
-        private int lastUsedRow;
         private string masterData = "";
         private string missingFileName = "BU_Pick_Schedule.xlsx";
         private string path;
@@ -115,83 +106,21 @@ namespace BUPicksList
 
             if (dlg.ShowDialog() == DialogResult.OK) 
             {
-                
+                //get input file path
                 pathfilename = dlg.FileName;
                 FileLabel.Text = Path.GetFullPath(dlg.FileName);
                 path = Path.GetDirectoryName(dlg.FileName);
 
 
-                //get raw data as a sheet
-                object misValue = System.Reflection.Missing.Value;
-                xlWorkbook = new ClosedXML.Excel.XLWorkbook(pathfilename);
-                var xlWorkSheet = xlWorkbook.Worksheet(1);
-                var firstCell = xlWorkSheet.FirstCellUsed();
-                var lastCell = xlWorkSheet.LastCellUsed();
-                var range = xlWorkSheet.Range(firstCell.Address, lastCell.Address);
-
-
-
-                //create base workbook using ClosedXML
+                //Create output file name and path
                 masterData = "ExpenseDeliveryManagement " + DateTime.Now.ToString("mm-dd-yyyy") + " - " + DateTime.Now.ToString("hh tt") + ".xlsx";
                 masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
-                newXLWorkbook = new ClosedXML.Excel.XLWorkbook();
-                
-                var newxlWorkSheet = newXLWorkbook.Worksheets.Add("MasterData");
-                
-                newxlWorkSheet.Cell(1, 1).Value = range;
-                
-                
-
-                //find the missing list workbook name, copy it to a temp directory using EPPlus 
+               
+                //find the missing list workbook name, Get the full OneDrive path
                 userPathToMissingFile = Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH") + Path.DirectorySeparatorChar + "Applied Materials";
                 fullMissingPath = Path.Combine(userPathToMissingFile, missingFileOneDriveDirectory);
                 var tempBookName = fullMissingPath + Path.DirectorySeparatorChar + missingFileName;
-                //var barray = File.ReadAllBytes(@"C:\Users\mnishimurax098966\source\repos\BUPicksListApp\bin\x64\Debug\net472\tempfiles\temp.xlsx");
-                ClosedXML.Excel.XLWorkbook test = new ClosedXML.Excel.XLWorkbook(tempBookName);
-                test.Worksheet("B21-MissingList").Column(8).Delete();
-                var testSheet = test.Worksheet("B21-MissingList");
-                var tempRange = test.Worksheet("B21-MissingList").Range(testSheet.FirstCellUsed().Address, testSheet.LastCellUsed().Address);
-                newXLWorkbook.Worksheets.Add("MissingList").Cell(1,1).Value = tempRange;
-                //test.Worksheet("B21-MissingList").CopyTo(newXLWorkbook, "MissingList");
-
-                //Directory.CreateDirectory(@".\temp.xlsx");
-                //File.Copy(tempBookName,@".\temp.xlsx",true);
-
-
-
-
                 
-
-                //insert desired formula
-
-                
-                
-                newxlWorkSheet.Cell(1,9).Value = "Status";
-                firstCell = newxlWorkSheet.FirstRowUsed().RowBelow().LastCellUsed().CellRight();
-                lastCell = newxlWorkSheet.LastRowUsed().LastCellUsed().CellRight();
-                range = newxlWorkSheet.Range(firstCell.Address, lastCell.Address);
-                range.FormulaR1C1 = formulaCopiedSheet;
-                
-
-                
-
-                //Ensure that the sheet formulas have resolved
-                //masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
-                //newXLWorkbook.CalculateMode = ClosedExcel.XLCalculateMode.Auto;
-
-                
-                newXLWorkbook.SaveAs(masterDataPath);
-                //newXLWorkbook = null;
-                //newxlWorkSheet = null;
-                //firstCell = null;
-                //lastCell = null;
-                //xlWorkbook = null;
-                //xlWorkSheet = null;
-                //range = null;
-
-
-
-                //var vas = new FileInfo(masterDataPath);
                 using (ExcelPackage packList = new ExcelPackage(new FileInfo(pathfilename)))
                 using (ExcelPackage packMissing = new ExcelPackage(new FileInfo(tempBookName)))
                 using (ExcelPackage pckd = new ExcelPackage())
@@ -205,15 +134,12 @@ namespace BUPicksList
                     sheet1.Cells[1, 9].Value = "Status";
                     var rangeXML = sheet1.Cells[2, sheet1.Dimension.End.Column, sheet1.Dimension.End.Row, 9];
                     rangeXML.FormulaR1C1 = formulaCopiedSheet;
-                    //sheet.SelectedRange[firstc,lastc] = formulaCopiedSheet;
+                    
                     sheet1.Cells.Calculate();
 
                     pckd.SaveAs(new FileInfo(masterDataPath));
                 }
-                //newXLWorkbook.Save();
-                //newXLWorkbook = new ClosedXML.Excel.XLWorkbook(masterDataPath);
-                //newXLWorkbook.Worksheet(1).RecalculateAllFormulas();
-                //newXLWorkbook.Save();
+                
 
 
             }
@@ -269,7 +195,7 @@ namespace BUPicksList
 
                         foreach (var sheet in package.Workbook.Worksheets)
                         {
-                            if (sheet.Cells[2, 1].Value == null)
+                            if (sheet.Name == "MissingList" || sheet.Cells[2, 1].Value == null)
                             {
                                 sheet.Hidden = eWorkSheetHidden.Hidden;
                             }
