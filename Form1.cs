@@ -9,6 +9,7 @@ using System.Text;
 using System.Reflection;
 using System.Windows.Forms;
 using OfficeOpenXml;
+using Excel = Microsoft.Office.Interop.Excel;
 
 namespace BUPicksList
 {
@@ -18,7 +19,7 @@ namespace BUPicksList
         private static string defaultMissingDirectory = "https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/";
         private string formula = "=IFERROR(VLOOKUP(RC[-8],'" + "[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
         private string formulaModified = "=IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
-        private string formulaCopiedSheet = "IFERROR(VLOOKUP(RC[-8],'MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'MissingList'!C2:C5,4,FALSE)))";
+        private string formulaCopiedSheet = "=IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),VLOOKUP(RC[-8],MissingList!B:E,4,FALSE)))";
         private string masterData = "";
         private string missingFileName = "BU_Pick_Schedule.xlsx";
         private string path;
@@ -120,27 +121,34 @@ namespace BUPicksList
                 userPathToMissingFile = Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH") + Path.DirectorySeparatorChar + "Applied Materials";
                 fullMissingPath = Path.Combine(userPathToMissingFile, missingFileOneDriveDirectory);
                 var tempBookName = fullMissingPath + Path.DirectorySeparatorChar + missingFileName;
-                
+
+                using (ExcelPackage packTemp = new ExcelPackage(new FileInfo("./template.xlsx")))
                 using (ExcelPackage packList = new ExcelPackage(new FileInfo(pathfilename)))
                 using (ExcelPackage packMissing = new ExcelPackage(new FileInfo(tempBookName)))
                 using (ExcelPackage pckd = new ExcelPackage())
                 {
-                    var sheet1 = pckd.Workbook.Worksheets.Add("MasterData");
-                    var sheet2 = pckd.Workbook.Worksheets.Add("MissingList");
+                    var sheet1 = packTemp.Workbook.Worksheets["MasterData"];
+                    var sheet2 = packTemp.Workbook.Worksheets["MissingList"];
                     var sheetList = packList.Workbook.Worksheets[1];
                     var sheetMissing = packMissing.Workbook.Worksheets["B21-MissingList"];
                     sheet1.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value = sheetList.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value;
                     sheet2.Cells[1, 1, sheetMissing.Dimension.End.Row,sheetMissing.Dimension.End.Column].Value = sheetMissing.Cells[1,1,sheetMissing.Dimension.End.Row,sheetMissing.Dimension.End.Column].Value;
                     sheet1.Cells[1, 9].Value = "Status";
-                    var rangeXML = sheet1.Cells[2, sheet1.Dimension.End.Column, sheet1.Dimension.End.Row, 9];
-                    rangeXML.FormulaR1C1 = formulaCopiedSheet;
-                    
-                    sheet1.Cells.Calculate();
-
-                    pckd.SaveAs(new FileInfo(masterDataPath));
+                    var rangeXML = sheet1.Cells[2, sheet1.Dimension.End.Column, sheet1.Dimension.End.Row, sheet1.Dimension.End.Column];
+                                        
+                    pckd.Workbook.CalcMode = ExcelCalcMode.Automatic;
+                                        
+                    pckd.Workbook.Calculate();
+                    packTemp.SaveAs(new FileInfo(masterDataPath));
                 }
-                
 
+                
+                var app = new Excel.Application();
+                app.Visible = false;
+                Excel.Workbook wb = app.Workbooks.Open(masterDataPath);
+                wb.Save();
+                wb.Close();
+                app.Quit();
 
             }
             
