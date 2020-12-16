@@ -16,8 +16,8 @@ namespace BUPicksList
     public partial class Form1 : Form
     {
         private string pathfilename;
-        private static string defaultMissingDirectory = "https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/";
-        private string formula = "=IFERROR(VLOOKUP(RC[-8],'" + "[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
+        private static string defaultMissingDirectory = "";
+        private string formula = "";
         private string formulaModified = "=IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
         private string formulaCopiedSheet = "=IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),VLOOKUP(RC[-8],MissingList!B:E,4,FALSE)))";
         private string masterData = "";
@@ -122,6 +122,7 @@ namespace BUPicksList
                 fullMissingPath = Path.Combine(userPathToMissingFile, missingFileOneDriveDirectory);
                 var tempBookName = fullMissingPath + Path.DirectorySeparatorChar + missingFileName;
 
+                //Use EPPlus to load both sheets into master file, copy formula and save
                 using (ExcelPackage packTemp = new ExcelPackage(new FileInfo("./template.xlsx")))
                 using (ExcelPackage packList = new ExcelPackage(new FileInfo(pathfilename)))
                 using (ExcelPackage packMissing = new ExcelPackage(new FileInfo(tempBookName)))
@@ -142,7 +143,8 @@ namespace BUPicksList
                     packTemp.SaveAs(new FileInfo(masterDataPath));
                 }
 
-                
+                //Briefly open Excel to load results of formulas and save
+                //No other library could store results without opening Excel
                 var app = new Excel.Application();
                 app.Visible = false;
                 Excel.Workbook wb = app.Workbooks.Open(masterDataPath);
@@ -214,14 +216,14 @@ namespace BUPicksList
                                     case string name when sheet.Name.Contains("Data"):
                                         sheet.TabColor = Color.White;
                                         break;
+                                    case string name when sheet.Name.Contains("Large") && sheet.Name.Contains("Attempted"):
+                                        sheet.TabColor = Color.Orange;
+                                        break;
                                     case string name when sheet.Name.Contains("Large"):
                                         sheet.TabColor = Color.Green; //ClosedXML.Excel.XLColor.Green
                                         break;
                                     case string name when sheet.Name.Contains("Attempted"):
                                         sheet.TabColor = Color.Yellow;
-                                        break;
-                                    case string name when sheet.Name.Contains("Large") && sheet.Name.Contains("Attempted"):
-                                        sheet.TabColor = Color.Orange;
                                         break;
                                     default:
                                         sheet.TabColor = Color.Blue;
@@ -259,7 +261,10 @@ namespace BUPicksList
         }
 
         
-
+        /*
+         * These set of methods send SQL querys to the excel data, creating reports pages
+         * for the attributes described in the apps listboxes (settings)
+         */
         private void CreateNormalSheet(String roomName)
         {
             try
@@ -494,6 +499,7 @@ namespace BUPicksList
             UserSelectedMissingList();
         }
 
+        //replaces the live missing list if network unavailable
         public void UserSelectedMissingList()
         {
             OpenFileDialog dlg = new OpenFileDialog();
