@@ -155,7 +155,7 @@ namespace BUPicksList
                     app.Quit();
 
                     CreateDailyFolder();
-                    CopyMasterFile();
+                    
                     
                 }
                 catch (Exception ex)
@@ -269,9 +269,7 @@ namespace BUPicksList
                 
 
             }
-            
-
-
+            CopyMasterFile();
         }
 
         
