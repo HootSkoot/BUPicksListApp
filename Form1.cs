@@ -27,6 +27,7 @@ namespace BUPicksList
         private string userPathToMissingFile = "";
         private string fullMissingPath = "";
         private string missingFileOneDriveDirectory = "Abisheik Mani --TR-CNTR - BU Delivery Process";
+        private string namePath;
         public Form1()
         {
             InitializeComponent();
@@ -121,36 +122,52 @@ namespace BUPicksList
                 userPathToMissingFile = Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH") + Path.DirectorySeparatorChar + "Applied Materials";
                 fullMissingPath = Path.Combine(userPathToMissingFile, missingFileOneDriveDirectory);
                 var tempBookName = fullMissingPath + Path.DirectorySeparatorChar + missingFileName;
-
-                //Use EPPlus to load both sheets into master file, copy formula and save
-                using (ExcelPackage packTemp = new ExcelPackage(new FileInfo("./template.xlsx")))
-                using (ExcelPackage packList = new ExcelPackage(new FileInfo(pathfilename)))
-                using (ExcelPackage packMissing = new ExcelPackage(new FileInfo(tempBookName)))
-                using (ExcelPackage pckd = new ExcelPackage())
+                try
                 {
-                    var sheet1 = packTemp.Workbook.Worksheets["MasterData"];
-                    var sheet2 = packTemp.Workbook.Worksheets["MissingList"];
-                    var sheetList = packList.Workbook.Worksheets[1];
-                    var sheetMissing = packMissing.Workbook.Worksheets["B21-MissingList"];
-                    sheet1.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value = sheetList.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value;
-                    sheet2.Cells[1, 1, sheetMissing.Dimension.End.Row,sheetMissing.Dimension.End.Column].Value = sheetMissing.Cells[1,1,sheetMissing.Dimension.End.Row,sheetMissing.Dimension.End.Column].Value;
-                    sheet1.Cells[1, 9].Value = "Status";
-                    var rangeXML = sheet1.Cells[2, sheet1.Dimension.End.Column, sheet1.Dimension.End.Row, sheet1.Dimension.End.Column];
-                                        
-                    pckd.Workbook.CalcMode = ExcelCalcMode.Automatic;
-                                        
-                    pckd.Workbook.Calculate();
-                    packTemp.SaveAs(new FileInfo(masterDataPath));
-                }
+                    //Use EPPlus to load both sheets into master file, copy formula and save
+                    using (ExcelPackage packTemp = new ExcelPackage(new FileInfo("./template.xlsx")))
+                    using (ExcelPackage packList = new ExcelPackage(new FileInfo(pathfilename)))
+                    using (ExcelPackage packMissing = new ExcelPackage(new FileInfo(tempBookName)))
+                    using (ExcelPackage pckd = new ExcelPackage())
+                    {
+                        var sheet1 = packTemp.Workbook.Worksheets["MasterData"];
+                        var sheet2 = packTemp.Workbook.Worksheets["MissingList"];
+                        var sheetList = packList.Workbook.Worksheets[1];
+                        var sheetMissing = packMissing.Workbook.Worksheets["B21-MissingList"];
+                        sheet1.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value = sheetList.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value;
+                        sheet2.Cells[1, 1, sheetMissing.Dimension.End.Row, sheetMissing.Dimension.End.Column].Value = sheetMissing.Cells[1, 1, sheetMissing.Dimension.End.Row, sheetMissing.Dimension.End.Column].Value;
+                        sheet1.Cells[1, 9].Value = "Status";
+                        var rangeXML = sheet1.Cells[2, sheet1.Dimension.End.Column, sheet1.Dimension.End.Row, sheet1.Dimension.End.Column];
 
-                //Briefly open Excel to load results of formulas and save
-                //No other library could store results without opening Excel
-                var app = new Excel.Application();
-                app.Visible = false;
-                Excel.Workbook wb = app.Workbooks.Open(masterDataPath);
-                wb.Save();
-                wb.Close();
-                app.Quit();
+                        pckd.Workbook.CalcMode = ExcelCalcMode.Automatic;
+
+                        pckd.Workbook.Calculate();
+                        packTemp.SaveAs(new FileInfo(masterDataPath));
+                    }
+
+                    //Briefly open Excel to load results of formulas and save
+                    //No other library could store results without opening Excel
+                    var app = new Excel.Application();
+                    app.Visible = false;
+                    Excel.Workbook wb = app.Workbooks.Open(masterDataPath);
+                    wb.Save();
+                    wb.Close();
+                    app.Quit();
+
+                    CreateDailyFolder();
+                    CopyMasterFile();
+                    
+                }
+                catch (Exception ex)
+                {
+                    string templateResults = "Template file found: " + File.Exists("./template.xlsx");
+                    string masterDataResults = "Downloaded Master Data location: " + pathfilename;
+                    string missingListResults = "Missing List Location: " + tempBookName;
+                    MessageBox.Show(templateResults + "\n" + masterDataResults + "\n" + missingListResults + "\n" + ex.Message, "Error Warning", MessageBoxButtons.OK);
+                    throw;
+                }
+                
+
 
             }
             
@@ -202,7 +219,7 @@ namespace BUPicksList
                 {
                     using (var package = new ExcelPackage(new FileInfo(masterDataPath)))  //newXLWorkbook = new ClosedXML.Excel.XLWorkbook(new FileStream(masterDataPath,FileMode.OpenOrCreate,FileAccess.ReadWrite))
                     {
-
+                        SheetCollection largeBook = new SheetCollection("Large and Crate", namePath);
                         foreach (var sheet in package.Workbook.Worksheets)
                         {
                             if (sheet.Name == "MissingList" || sheet.Cells[2, 1].Value == null)
@@ -218,12 +235,17 @@ namespace BUPicksList
                                         break;
                                     case string name when sheet.Name.Contains("Large") && sheet.Name.Contains("Attempted"):
                                         sheet.TabColor = Color.Orange;
+                                        largeBook.addSheet(sheet);
                                         break;
                                     case string name when sheet.Name.Contains("Large"):
                                         sheet.TabColor = Color.Green; //ClosedXML.Excel.XLColor.Green
+                                        largeBook.addSheet(sheet);
                                         break;
                                     case string name when sheet.Name.Contains("Attempted"):
                                         sheet.TabColor = Color.Yellow;
+                                        SheetCollection book = new SheetCollection(sheet.Name,namePath);
+                                        book.addSheet(sheet);
+                                        book.createWorkbook();
                                         break;
                                     default:
                                         sheet.TabColor = Color.Blue;
@@ -231,7 +253,7 @@ namespace BUPicksList
                                 }
                             }
                         }
-
+                        largeBook.createWorkbook();
                         package.Save();
                     }
 
@@ -240,6 +262,7 @@ namespace BUPicksList
                 {
 
                     MessageBox.Show(ex.Message + " " + masterDataPath);
+                    throw;
                 } 
                 
                     
@@ -510,6 +533,20 @@ namespace BUPicksList
                 MissingListLabel.Text = Path.GetDirectoryName(dlg.FileName);
                 formula = formulaModified;
             }
+        }
+        private void CreateDailyFolder()
+        {
+            namePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + "BUPicks " + DateTime.Today.ToString("MM-dd-yy");
+            if (!Directory.Exists(namePath))
+            {
+                Directory.CreateDirectory(namePath);
+            }
+        }
+
+        private void CopyMasterFile()
+        {
+            string destination = Path.Combine(namePath, masterData);
+            File.Copy(masterDataPath, destination, true);
         }
     }
 }
