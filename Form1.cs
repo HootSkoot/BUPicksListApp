@@ -1,33 +1,33 @@
 ﻿using System;
 using System.Data;
+using System.Collections.Generic;
 using OLEDB = System.Data.OleDb;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-//using Microsoft.Office.Interop.Excel;
+using OfficeOpenXml;
 using Excel = Microsoft.Office.Interop.Excel;
-using ClosedExcel = ClosedXML.Excel;
 
 namespace BUPicksList
 {
     public partial class Form1 : Form
     {
         private string pathfilename;
-        private Excel.Application xlApp;
-        private Excel.Workbook xlWorkbook;
-        private Excel.Workbook newXLWorkbook;
-        private Excel.Worksheet xlWorkSheet;
-        private Excel.Worksheet newxlWorkSheet;
-        private static string defaultMissingDirectory = "https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/";
-        private string formula = "=IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'https://mydrive.amat.com/personal/abisheik_mani_contractor_amat_com/Documents/BU Delivery Process/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
+        private static string defaultMissingDirectory = "";
+        private string formula = "";
         private string formulaModified = "=IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
-        private int lastUsedRow;
+        private string formulaCopiedSheet = "=IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),VLOOKUP(RC[-8],MissingList!B:E,4,FALSE)))";
         private string masterData = "";
+        private string missingFileName = "BU_Pick_Schedule.xlsx";
         private string path;
         private string masterDataPath;
+        private string userPathToMissingFile = "";
+        private string fullMissingPath = "";
+        private string missingFileOneDriveDirectory = "Abisheik Mani --TR-CNTR - BU Delivery Process";
+        private string namePath;
         public Form1()
         {
             InitializeComponent();
@@ -59,85 +59,7 @@ namespace BUPicksList
             SizeListBox.DataSource = Properties.Settings.Default.SizeList.Cast<string>().ToArray();
         }
         
-        //uses created masterlist as a database to query, builds useable file
-        private void CreateButton_Click(object sender, EventArgs e)
-        {
-            if (masterData != "")
-            {
-                foreach (String roomName in Properties.Settings.Default.RoomList)
-                {
-                    Console.WriteLine(roomName);
-                    if (roomName.Contains("Pong"))
-                    {
-                        foreach (String BU in Properties.Settings.Default.BUList)
-                        {
-                            CreateNormalSheet(roomName, BU);
-                        }
-                    }
-                    else
-                    {
-                        CreateNormalSheet(roomName);
-                    }
-                    
-                }
-                foreach (String buildingName in Properties.Settings.Default.BuildingList)
-                {
-                    Console.WriteLine(buildingName);
-                    CreateAttemptedSheet(buildingName);
-                }
-                foreach (String roomName in Properties.Settings.Default.RoomList)
-                {
-                    if (roomName.Contains("Dock"))
-                    {
-                        Console.WriteLine(roomName);
-                        CreateLargeSheet(roomName);
-                    }
-                }
-                foreach (String roomName in Properties.Settings.Default.RoomList)
-                {
-                    if (roomName.Contains("Dock"))
-                    {
-                        Console.WriteLine(roomName);
-                        CreateLargeAttemptedSheet(roomName);
-                    }
-                }
-                using (var workbook = new ClosedExcel.XLWorkbook(masterDataPath))
-                {
-                    foreach (var sheet in workbook.Worksheets)
-                    {
-                        if (sheet.LastRowUsed().RowNumber() == 1)
-                        {
-                            sheet.Hide();
-                        }
-                        else
-                        {
-                            switch (sheet.Name)
-                            {
-                                case string name when sheet.Name.Contains("Data"):
-                                    sheet.TabColor = ClosedExcel.XLColor.White;
-                                    break;
-                                case string name when sheet.Name.Contains("Large"):
-                                    sheet.TabColor = ClosedExcel.XLColor.Green;
-                                    break;
-                                case string name when sheet.Name.Contains("Attempted"):
-                                    sheet.TabColor = ClosedExcel.XLColor.Yellow;
-                                    break;
-                                case string name when sheet.Name.Contains("Large") && sheet.Name.Contains("Attempted"):
-                                    sheet.TabColor = ClosedExcel.XLColor.Orange;
-                                    break;
-                                default:
-                                    sheet.TabColor = ClosedExcel.XLColor.Blue;
-                                    break;
-                            }
-                        }
-                    }
-                    workbook.Save();
-                }
-            }
-            
-           
-            
-        }
+        
         //adds the user entered string to the desired setting
         private void AddRoomButton_Click(object sender, EventArgs e)
         {
@@ -186,55 +108,174 @@ namespace BUPicksList
 
             if (dlg.ShowDialog() == DialogResult.OK) 
             {
-                xlApp = new Excel.Application();
-                //get name of file and path
+                //get input file path
                 pathfilename = dlg.FileName;
-                FileLabel.Text = Path.GetDirectoryName(dlg.FileName);
+                FileLabel.Text = Path.GetFullPath(dlg.FileName);
                 path = Path.GetDirectoryName(dlg.FileName);
 
-                //get raw data as a sheet
-                object misValue = System.Reflection.Missing.Value;     
-                xlWorkbook = xlApp.Workbooks.Open(pathfilename);
-                xlWorkSheet = xlWorkbook.Sheets[1];
-                xlWorkSheet.UsedRange.Copy(Missing.Value);
+
+                //Create output file name and path
+                masterData = "ExpenseDeliveryManagement " + DateTime.Now.ToString("mm-dd-yyyy") + " - " + DateTime.Now.ToString("hh tt") + ".xlsx";
+                masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
+               
+                //find the missing list workbook name, Get the full OneDrive path
+                userPathToMissingFile = Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH") + Path.DirectorySeparatorChar + "Applied Materials";
+                fullMissingPath = Path.Combine(userPathToMissingFile, missingFileOneDriveDirectory);
+                var tempBookName = fullMissingPath + Path.DirectorySeparatorChar + missingFileName;
+                try
+                {
+                    //Use EPPlus to load both sheets into master file, copy formula and save
+                    using (ExcelPackage packTemp = new ExcelPackage(new FileInfo("./template.xlsx")))
+                    using (ExcelPackage packList = new ExcelPackage(new FileInfo(pathfilename)))
+                    using (ExcelPackage packMissing = new ExcelPackage(new FileInfo(tempBookName)))
+                    using (ExcelPackage pckd = new ExcelPackage())
+                    {
+                        var sheet1 = packTemp.Workbook.Worksheets["MasterData"];
+                        var sheet2 = packTemp.Workbook.Worksheets["MissingList"];
+                        var sheetList = packList.Workbook.Worksheets[1];
+                        var sheetMissing = packMissing.Workbook.Worksheets["B21-MissingList"];
+                        sheet1.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value = sheetList.Cells[1, 1, sheetList.Dimension.End.Row, sheetList.Dimension.End.Column].Value;
+                        sheet2.Cells[1, 1, sheetMissing.Dimension.End.Row, sheetMissing.Dimension.End.Column].Value = sheetMissing.Cells[1, 1, sheetMissing.Dimension.End.Row, sheetMissing.Dimension.End.Column].Value;
+                        sheet1.Cells[1, 9].Value = "Status";
+                        var rangeXML = sheet1.Cells[2, sheet1.Dimension.End.Column, sheet1.Dimension.End.Row, sheet1.Dimension.End.Column];
+
+                        pckd.Workbook.CalcMode = ExcelCalcMode.Automatic;
+
+                        pckd.Workbook.Calculate();
+                        packTemp.SaveAs(new FileInfo(masterDataPath));
+                    }
+
+                    //Briefly open Excel to load results of formulas and save
+                    //No other library could store results without opening Excel
+                    var app = new Excel.Application();
+                    app.Visible = false;
+                    Excel.Workbook wb = app.Workbooks.Open(masterDataPath);
+                    wb.Save();
+                    wb.Close();
+                    app.Quit();
+
+                    CreateDailyFolder();
+                    CopyMasterFile();
+                    
+                }
+                catch (Exception ex)
+                {
+                    string templateResults = "Template file found: " + File.Exists("./template.xlsx");
+                    string masterDataResults = "Downloaded Master Data location: " + pathfilename;
+                    string missingListResults = "Missing List Location: " + tempBookName;
+                    MessageBox.Show(templateResults + "\n" + masterDataResults + "\n" + missingListResults + "\n" + ex.Message, "Error Warning", MessageBoxButtons.OK);
+                    throw;
+                }
                 
 
-                //create base workbook
-                newXLWorkbook = xlApp.Workbooks.Add(Missing.Value);
-                newxlWorkSheet = newXLWorkbook.Sheets[1];
-                newxlWorkSheet.Name = "MasterData";
-                //insert desired formula
-                newxlWorkSheet.UsedRange.PasteSpecial(Excel.XlPasteType.xlPasteAll, Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, misValue, misValue);
-                newxlWorkSheet.Cells[1,9] = "Status";
-                newxlWorkSheet.Cells[5,9] = formula;
 
-                lastUsedRow = newxlWorkSheet.Cells.Find("*", misValue,
-                               misValue, misValue,
-                               Excel.XlSearchOrder.xlByRows, Excel.XlSearchDirection.xlPrevious,
-                               false, misValue, misValue).Row;
-
-                newxlWorkSheet.Range["i2", "i" + lastUsedRow].FormulaR1C1 = formula;
-                //Ensure that the sheet formulas have resolved
-                newxlWorkSheet.Calculate();
-
-                masterData = "ExpenseDeliveryManagement " + DateTime.Now.ToString("mm-dd-yyyy") + " - " + DateTime.Now.ToString("hh tt") + ".xlsx";
-                newXLWorkbook.SaveAs(masterData);
-                xlWorkbook.Close(true,misValue,misValue);
-                newXLWorkbook.Close(true, misValue, misValue);
-
-                xlApp.Quit();
-                Marshal.ReleaseComObject(xlWorkSheet);
-                Marshal.ReleaseComObject(xlWorkbook);
-                Marshal.ReleaseComObject(newXLWorkbook);
-                Marshal.ReleaseComObject(newxlWorkSheet);
-                Marshal.ReleaseComObject(xlApp);
-                //Sheet needs to be saved and closed to reset objects, turn the formulas into flat values
-
-                ReplaceFormulasWithValues();
-                masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
             }
             
         }
+
+        //uses created masterlist as a database to query, builds useable file
+        private void CreateButton_Click(object sender, EventArgs e)
+        {
+            if (masterDataPath != "")
+            {
+                foreach (String roomName in Properties.Settings.Default.RoomList)
+                {
+                    Console.WriteLine(roomName);
+                    if (roomName.Contains("Pong"))
+                    {
+                        foreach (String BU in Properties.Settings.Default.BUList)
+                        {
+                            CreateNormalSheet(roomName, BU);
+                        }
+                    }
+                    else
+                    {
+                        CreateNormalSheet(roomName);
+                    }
+
+                }
+                foreach (String buildingName in Properties.Settings.Default.BuildingList)
+                {
+                    Console.WriteLine(buildingName);
+                    CreateAttemptedSheet(buildingName);
+                }
+                foreach (String roomName in Properties.Settings.Default.RoomList)
+                {
+                    if (roomName.Contains("Dock"))
+                    {
+                        Console.WriteLine(roomName);
+                        CreateLargeSheet(roomName);
+                    }
+                }
+                foreach (String roomName in Properties.Settings.Default.RoomList)
+                {
+                    if (roomName.Contains("Dock"))
+                    {
+                        Console.WriteLine(roomName);
+                        CreateLargeAttemptedSheet(roomName);
+                    }
+                }
+                try
+                {
+                    using (var package = new ExcelPackage(new FileInfo(masterDataPath)))  //newXLWorkbook = new ClosedXML.Excel.XLWorkbook(new FileStream(masterDataPath,FileMode.OpenOrCreate,FileAccess.ReadWrite))
+                    {
+                        SheetCollection largeBook = new SheetCollection("Large and Crate", namePath);
+                        foreach (var sheet in package.Workbook.Worksheets)
+                        {
+                            if (sheet.Name == "MissingList" || sheet.Cells[2, 1].Value == null)
+                            {
+                                sheet.Hidden = eWorkSheetHidden.Hidden;
+                            }
+                            else
+                            {
+                                switch (sheet.Name)
+                                {
+                                    case string name when sheet.Name.Contains("Data"):
+                                        sheet.TabColor = Color.White;
+                                        break;
+                                    case string name when sheet.Name.Contains("Large") && sheet.Name.Contains("Attempted"):
+                                        sheet.TabColor = Color.Orange;
+                                        largeBook.addSheet(sheet);
+                                        break;
+                                    case string name when sheet.Name.Contains("Large"):
+                                        sheet.TabColor = Color.Green; //ClosedXML.Excel.XLColor.Green
+                                        largeBook.addSheet(sheet);
+                                        break;
+                                    case string name when sheet.Name.Contains("Attempted"):
+                                        sheet.TabColor = Color.Yellow;
+                                        SheetCollection book = new SheetCollection(sheet.Name,namePath);
+                                        book.addSheet(sheet);
+                                        book.createWorkbook();
+                                        break;
+                                    default:
+                                        sheet.TabColor = Color.Blue;
+                                        break;
+                                }
+                            }
+                        }
+                        largeBook.createWorkbook();
+                        package.Save();
+                    }
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message + " " + masterDataPath);
+                    throw;
+                } 
+                
+                    
+                
+
+            }
+            
+
+
+        }
+
+        
+
 
         //Create a reuseable OLEDB connection
         private OLEDB.OleDbConnection returnConnection()
@@ -242,26 +283,11 @@ namespace BUPicksList
             return new OLEDB.OleDbConnection("Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData + ";Extended Properties=\"Excel 12.0 Xml; HDR = YES\"");
         }
 
-        private void ReplaceFormulasWithValues()
-        {
-            xlApp = new Excel.Application();
-            xlWorkbook = xlApp.Workbooks.Open(masterData);
-            xlWorkSheet = xlWorkbook.Sheets[1];
-            Excel.Range range = (Excel.Range)xlWorkSheet.UsedRange.Columns["I:I",Type.Missing];
-            range.Copy(Type.Missing);
-            range.PasteSpecial(Excel.XlPasteType.xlPasteValues,Excel.XlPasteSpecialOperation.xlPasteSpecialOperationNone, false, false);
-
-            //standard close out of INterop
-            xlWorkbook.Save();
-            xlWorkbook.Close(true, Missing.Value, Missing.Value);
-            xlApp.Quit();
-            Marshal.ReleaseComObject(xlWorkSheet);
-            Marshal.ReleaseComObject(xlWorkbook);
-            //Marshal.ReleaseComObject(newXLWorkbook);
-            //Marshal.ReleaseComObject(newxlWorkSheet);
-            Marshal.ReleaseComObject(xlApp);
-        }
-
+        
+        /*
+         * These set of methods send SQL querys to the excel data, creating reports pages
+         * for the attributes described in the apps listboxes (settings)
+         */
         private void CreateNormalSheet(String roomName)
         {
             try
@@ -275,9 +301,9 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + roomName.Replace(' ','_').Replace('-','_') + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.CommandText = @"Create Table " + roomName.Replace(' ','_').Replace('-','_') + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select * From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -310,9 +336,9 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_" + BU + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_" + BU + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_" + BU + "$] Select * From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and BU='" + BU + "' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_" + BU + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and BU='" + BU + "' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -344,9 +370,9 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_Large(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_Large(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large$] Select * From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and PackageType IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and PackageType IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -380,9 +406,9 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.CommandText = @"Create Table " + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted$] Select * From [MasterData$] Where Status<>'Missing' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and (Location NOT LIKE '%versum%' and Location NOT LIKE '%MarkGruver%' and Location LIKE '%" + buildingName + "%attempt%') Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and (Location NOT LIKE '%versum%' and Location NOT LIKE '%MarkGruver%' and Location LIKE '%" + buildingName + "%attempt%') Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -414,9 +440,9 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar, Status varchar);";
+                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted$] Select * From [MasterData$] Where Status<>'Missing' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and PackageType IN " + SizeListString() + " and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%versum%' and Location LIKE '%attempt%') and BUStaging='" + roomName + "' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and PackageType IN " + SizeListString() + " and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%versum%' and Location LIKE '%attempt%') and BUStaging='" + roomName + "' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -496,6 +522,7 @@ namespace BUPicksList
             UserSelectedMissingList();
         }
 
+        //replaces the live missing list if network unavailable
         public void UserSelectedMissingList()
         {
             OpenFileDialog dlg = new OpenFileDialog();
@@ -506,6 +533,20 @@ namespace BUPicksList
                 MissingListLabel.Text = Path.GetDirectoryName(dlg.FileName);
                 formula = formulaModified;
             }
+        }
+        private void CreateDailyFolder()
+        {
+            namePath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + "BUPicks " + DateTime.Today.ToString("MM-dd-yy");
+            if (!Directory.Exists(namePath))
+            {
+                Directory.CreateDirectory(namePath);
+            }
+        }
+
+        private void CopyMasterFile()
+        {
+            string destination = Path.Combine(namePath, masterData);
+            File.Copy(masterDataPath, destination, true);
         }
     }
 }
