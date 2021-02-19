@@ -121,7 +121,16 @@ namespace BUPicksList
                 //find the missing list workbook name, Get the full OneDrive path
                 userPathToMissingFile = Environment.GetEnvironmentVariable("HOMEDRIVE") + Environment.GetEnvironmentVariable("HOMEPATH") + Path.DirectorySeparatorChar + "Applied Materials";
                 fullMissingPath = Path.Combine(userPathToMissingFile, missingFileOneDriveDirectory);
-                var tempBookName = fullMissingPath + Path.DirectorySeparatorChar + missingFileName;
+                var tempBookName = "";
+                if (defaultMissingDirectory != "")
+                {
+                    tempBookName = defaultMissingDirectory;
+                }
+                else
+                {
+                    tempBookName = fullMissingPath + Path.DirectorySeparatorChar + missingFileName;
+                }
+                
                 try
                 {
                     //Use EPPlus to load both sheets into master file, copy formula and save
@@ -370,7 +379,7 @@ namespace BUPicksList
                         cmd.Connection = conn;
                         cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_Large(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%') and BUStaging='" + roomName + "' and PackageType IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%' and Location NOT LIKE '%B72%' and BUStaging NOT LIKE '%B72%') and BUStaging='" + roomName + "' and PackageType IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -440,7 +449,7 @@ namespace BUPicksList
                         cmd.Connection = conn;
                         cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and PackageType IN " + SizeListString() + " and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%versum%' and Location LIKE '%attempt%') and BUStaging='" + roomName + "' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and PackageType IN " + SizeListString() + " and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%versum%' and Location LIKE '%attempt%' and Location NOT LIKE '%B72%' and BUStaging NOT LIKE '%B72%') and BUStaging='" + roomName + "' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -527,7 +536,7 @@ namespace BUPicksList
 
             if (dlg.ShowDialog() == DialogResult.OK)
             {
-                defaultMissingDirectory = Path.GetDirectoryName(dlg.FileName);
+                defaultMissingDirectory = dlg.FileName;
                 MissingListLabel.Text = Path.GetDirectoryName(dlg.FileName);
                 formula = formulaModified;
             }
