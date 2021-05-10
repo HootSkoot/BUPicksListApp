@@ -415,7 +415,7 @@ namespace BUPicksList
                         cmd.Connection = conn;
                         cmd.CommandText = @"Create Table " + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and (Location NOT LIKE '%versum%' and Location NOT LIKE '%MarkGruver%' and (Location LIKE '%" + buildingName + "%attempt%' OR (Location LIKE '%" + buildingName + "%pallet%' AND LocType LIKE '%ATTEMPT%'))) Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + buildingName.Replace(' ', '_').Replace('-', '_') + "_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and (Location NOT LIKE '%versum%' and Location NOT LIKE '%MarkGruver%' and (Location LIKE '%" + buildingName + "%attempt%' OR (Location LIKE '%" + buildingName + "%pallet%' AND LocType LIKE '%ATTEMPT%') OR (BUStaging LIKE '%" + buildingName + "%' AND LocType Like '%ATTEMPT%'))) Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -449,7 +449,7 @@ namespace BUPicksList
                         cmd.Connection = conn;
                         cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and PackageType IN " + SizeListString() + " and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%versum%' and Location LIKE '%attempt%' and Location NOT LIKE '%B72%' and BUStaging NOT LIKE '%B72%') and BUStaging='" + roomName + "' Order By BU;";
+                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_Large_Attempted$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and PackageType IN " + SizeListString() + " and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%versum%' and (Location LIKE '%attempt%' OR LocType LIKE '%ATTEMPT%') and Location NOT LIKE '%B72%' and BUStaging NOT LIKE '%B72%') and BUStaging='" + roomName + "' Order By BU;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
