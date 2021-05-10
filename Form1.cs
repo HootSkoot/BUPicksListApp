@@ -26,7 +26,7 @@ namespace BUPicksList
         private string masterDataPath;
         private string userPathToMissingFile = "";
         private string fullMissingPath = "";
-        private string missingFileOneDriveDirectory = "Abisheik Mani --TR-CNTR - BU Delivery Process";
+        private string missingFileOneDriveDirectory = "";
         private string namePath;
         public Form1()
         {
