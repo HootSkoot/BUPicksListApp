@@ -210,7 +210,7 @@ namespace BUPicksList
                 }
                 foreach (String roomName in Properties.Settings.Default.RoomList)
                 {
-                    if (roomName.Contains("Dock"))
+                    if (roomName.Contains("Dock") || roomName.Contains("B71"))
                     {
                         Console.WriteLine(roomName);
                         CreateLargeSheet(roomName);
@@ -218,7 +218,7 @@ namespace BUPicksList
                 }
                 foreach (String roomName in Properties.Settings.Default.RoomList)
                 {
-                    if (roomName.Contains("Dock"))
+                    if (roomName.Contains("Dock") || roomName.Contains("B71"))
                     {
                         Console.WriteLine(roomName);
                         CreateLargeAttemptedSheet(roomName);
