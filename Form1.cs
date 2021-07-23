@@ -19,14 +19,14 @@ namespace BUPicksList
         private static string defaultMissingDirectory = "";
         private string formula = "";
         private string formulaModified = "=IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B21-MissingList'!C2:C5,4,FALSE),IFERROR(VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B72-MissingList'!C2:C5,4,FALSE),VLOOKUP(RC[-8],'" + defaultMissingDirectory + "/[BU_Pick_Schedule.xlsx]B81-MissingList'!C2:C5,4,FALSE)))";
-        private string formulaCopiedSheet = "=IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),VLOOKUP(RC[-8],MissingList!B:E,4,FALSE)))";
+        //private string formulaCopiedSheet = "=IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),IFERROR(VLOOKUP(RC[-8],MissingList!B:E,4,FALSE),VLOOKUP(RC[-8],MissingList!B:E,4,FALSE)))";
         private string masterData = "";
         private string missingFileName = "BU_Pick_Schedule.xlsx";
         private string path;
         private string masterDataPath;
         private string userPathToMissingFile = "";
         private string fullMissingPath = "";
-        private string missingFileOneDriveDirectory = "";
+        private string missingFileOneDriveDirectory = "Abisheik Mani --TR-CNTR - BU Delivery Process";
         private string namePath;
         public Form1()
         {
@@ -187,82 +187,26 @@ namespace BUPicksList
         {
             if (masterDataPath != "")
             {
-                foreach (String roomName in Properties.Settings.Default.RoomList)
-                {
-                    Console.WriteLine(roomName);
-                    if (roomName.Contains("Pong"))
-                    {
-                        foreach (String BU in Properties.Settings.Default.BUList)
-                        {
-                            CreateNormalSheet(roomName, BU);
-                        }
-                    }
-                    else
-                    {
-                        CreateNormalSheet(roomName);
-                    }
-
-                }
+                
+                //Originally ured roomName in RoomList
                 foreach (String buildingName in Properties.Settings.Default.BuildingList)
                 {
-                    Console.WriteLine(buildingName);
-                    CreateAttemptedSheet(buildingName);
-                }
-                foreach (String roomName in Properties.Settings.Default.RoomList)
-                {
-                    if (roomName.Contains("Dock") || roomName.Contains("B71"))
-                    {
-                        Console.WriteLine(roomName);
-                        CreateLargeSheet(roomName);
-                    }
-                }
-                foreach (String roomName in Properties.Settings.Default.RoomList)
-                {
-                    if (roomName.Contains("Dock") || roomName.Contains("B71"))
-                    {
-                        Console.WriteLine(roomName);
-                        CreateLargeAttemptedSheet(roomName);
-                    }
+                    CreateBuildingSheet(buildingName);
+                    
                 }
                 try
                 {
                     using (var package = new ExcelPackage(new FileInfo(masterDataPath)))  //newXLWorkbook = new ClosedXML.Excel.XLWorkbook(new FileStream(masterDataPath,FileMode.OpenOrCreate,FileAccess.ReadWrite))
                     {
-                        SheetCollection largeBook = new SheetCollection("Large and Crate", namePath);
+                        
                         foreach (var sheet in package.Workbook.Worksheets)
                         {
                             if (sheet.Name == "MissingList" || sheet.Cells[2, 1].Value == null)
                             {
                                 sheet.Hidden = eWorkSheetHidden.Hidden;
                             }
-                            else
-                            {
-                                switch (sheet.Name)
-                                {
-                                    case string name when sheet.Name.Contains("Data"):
-                                        sheet.TabColor = Color.White;
-                                        break;
-                                    case string name when sheet.Name.Contains("Large") && sheet.Name.Contains("Attempted"):
-                                        sheet.TabColor = Color.Orange;
-                                        largeBook.addSheet(sheet);
-                                        break;
-                                    case string name when sheet.Name.Contains("Large"):
-                                        sheet.TabColor = Color.Green; //ClosedXML.Excel.XLColor.Green
-                                        largeBook.addSheet(sheet);
-                                        break;
-                                    case string name when sheet.Name.Contains("Attempted"):
-                                        sheet.TabColor = Color.Yellow;
-                                        SheetCollection book = new SheetCollection(sheet.Name,namePath);
-                                        book.addSheet(sheet);
-                                        book.createWorkbook();
-                                        break;
-                                    default:
-                                        sheet.TabColor = Color.Blue;
-                                        break;
-                                }
-                            }
                         }
-                        largeBook.createWorkbook();
+                        
                         package.Save();
                     }
 
@@ -272,11 +216,8 @@ namespace BUPicksList
 
                     MessageBox.Show(ex.Message + " " + masterDataPath);
                     throw;
-                } 
-                
-                    
-                
-
+                }
+                               
             }
             CopyMasterFile();
         }
@@ -295,7 +236,9 @@ namespace BUPicksList
          * These set of methods send SQL querys to the excel data, creating reports pages
          * for the attributes described in the apps listboxes (settings)
          */
-        private void CreateNormalSheet(String roomName)
+       
+
+        private void CreateBuildingSheet(String buildingName)
         {
             try
             {
@@ -308,9 +251,26 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + roomName.Replace(' ','_').Replace('-','_') + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
+                        string buildingClean = buildingName.Replace(' ', '_').Replace('-', '_');
+                        cmd.CommandText = @"Create Table " + buildingClean + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%' and Location NOT LIKE '%pallet%') and BUStaging='" + roomName + "' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
+                        if (buildingName=="B2-")
+                        {
+                            cmd.CommandText = @"Insert Into [" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                        }
+                        else if (buildingName == "B21")
+                        {
+                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                        }
+                        else if (buildingName == "B71")
+                        {
+                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                        }
+                        else
+                        {
+                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                        }
+                        //cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and BUStaging<>'' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC;";
                         cmd.ExecuteNonQuery();
                     }
                     catch (Exception ex)
@@ -330,40 +290,7 @@ namespace BUPicksList
             }
         }
 
-        private void CreateNormalSheet(String roomName, String BU)
-        {
-            try
-            {
-                //Fetches sheet with master list data
-
-                using (OLEDB.OleDbConnection conn = returnConnection())
-                {
-                    try
-                    {
-                        conn.Open();
-                        OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
-                        cmd.Connection = conn;
-                        cmd.CommandText = @"Create Table " + roomName.Replace(' ', '_').Replace('-', '_') + "_" + BU + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
-                        cmd.ExecuteNonQuery();
-                        cmd.CommandText = @"Insert Into [" + roomName.Replace(' ', '_').Replace('-', '_') + "_" + BU + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and (Location NOT LIKE '%RVN%' and Location NOT LIKE '%RCV-Stag%' and Location NOT LIKE '%Attempt%' and Location NOT LIKE '%pallet%') and BUStaging='" + roomName + "' and BU='" + BU + "' and PackageType NOT IN " + SizeListString() + " and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') and Location NOT LIKE '%attempt%' Order By BU;";
-                        cmd.ExecuteNonQuery();
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.ToString());
-                    }
-                    finally
-                    {
-                        conn.Close();
-                        conn.Dispose();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
-        }
+        
 
         private void CreateLargeSheet(String roomName)
         {
