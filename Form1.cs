@@ -35,6 +35,8 @@ namespace BUPicksList
             fillBUBox();
             fillBuildingBox();
             fillSizeBox();
+            defaultMissingDirectory = Properties.Settings.Default.MissingLocation;
+            MissingListLabel.Text = Properties.Settings.Default.MissingLocation;
 
 
         }
@@ -115,7 +117,7 @@ namespace BUPicksList
 
 
                 //Create output file name and path
-                masterData = "ExpenseDeliveryManagement " + DateTime.Now.ToString("mm-dd-yyyy") + " - " + DateTime.Now.ToString("hh tt") + ".xlsx";
+                masterData = "ExpenseDeliveryManagement " + DateTime.Now.ToString("MM-dd-yyyy") + " - " + DateTime.Now.ToString("hh tt") + ".xlsx";
                 masterDataPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\" + masterData;
                
                 //find the missing list workbook name, Get the full OneDrive path
@@ -251,27 +253,69 @@ namespace BUPicksList
                         conn.Open();
                         OLEDB.OleDbCommand cmd = new OLEDB.OleDbCommand();
                         cmd.Connection = conn;
-                        string buildingClean = buildingName.Replace(' ', '_').Replace('-', '_');
+                        string buildingClean = "";
+                        /*if (buildingName == "AGS-EDM")
+                        {
+                            buildingClean = "_B11";
+                        }
+                        else if (buildingName == "Trailer")
+                        {
+
+                        }
+                        else
+                        {
+                        }*/
+                            buildingClean = buildingName.Replace(' ', '_').Replace('-', '_');
+
+                        cmd.CommandText = @"Update [MasterData$] set [Status]='Missing' where [BUStaging] Like '%B85-TR%' and ([PackageType]='Large (> 35 lbs)' or [PackageType]='Crate');";
+                        cmd.ExecuteNonQuery();
                         cmd.CommandText = @"Create Table " + buildingClean + "(RfidTagId varchar, Location varchar,BU varchar, BUStaging varchar, RequestedDate varchar,RequestedModifyDate varchar,LocType varchar,PackageType varchar);";
                         cmd.ExecuteNonQuery();
                         if (buildingName=="B2-")
                         {
-                            cmd.CommandText = @"Insert Into [" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.CommandText = @"Insert Into [" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '%Versum%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.ExecuteNonQuery();
+                            cmd.CommandText = @"Delete From [" + buildingClean + "$] Where BUStaging Like '%B85-TR%' and PackageType IN " + SizeListString() + ";";
+                            cmd.ExecuteNonQuery();
+                        }
+                        else if (buildingName == "AGS-EDM")
+                        {
+                            cmd.CommandText = @"Insert Into [" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and Location NOT LIKE '%Versum%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.ExecuteNonQuery();
+                            cmd.CommandText = @"Delete From [" + buildingClean + "$] Where BUStaging Like '%B85-TR%' and PackageType IN " + SizeListString() + ";";
+                            cmd.ExecuteNonQuery();
                         }
                         else if (buildingName == "B21")
                         {
-                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '%Versum%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.ExecuteNonQuery();
+                            cmd.CommandText = @"Delete From [" + "_" + buildingClean + "$] Where BUStaging Like '%B85-TR%' and PackageType IN " + SizeListString() + ";";
+                            cmd.ExecuteNonQuery();
                         }
                         else if (buildingName == "B71")
                         {
-                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and Location NOT LIKE '%Versum%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.ExecuteNonQuery();
+                            cmd.CommandText = @"Delete From [" + "_" + buildingClean + "$] Where BUStaging Like '%B85-TR%' and PackageType IN " + SizeListString() + ";";
+                            cmd.ExecuteNonQuery();
+                        }
+                        else if (buildingName == "Trailer")
+                        {
+                            cmd.CommandText = @"Insert Into [" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%Trailer%' and Location NOT LIKE '% to %' and Location NOT LIKE '%Versum%' and BUStaging<>'' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By Location ASC;";
+                            cmd.ExecuteNonQuery();
+                            cmd.CommandText = @"Delete From [" + buildingClean + "$] Where BUStaging Like '%B85-TR%' and PackageType IN " + SizeListString() + ";";
+                            cmd.ExecuteNonQuery();
                         }
                         else
                         {
-                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and Location NOT LIKE '%Versum%' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                            cmd.ExecuteNonQuery();
+                            cmd.CommandText = @"Update [" + "_" + buildingClean + "$] Set RfidTagId='',Location='',BU,BUStaging='',RequestedDate='',RequestedModifyDate='',LocType='',PackageType='' Where BUStaging Like '%B85-TR%' and (PackageType='Large (> 35 lbs)' or PackageType='Crate');";
+                            cmd.ExecuteNonQuery();
                         }
-                        //cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and BUStaging<>'' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') Order By LocType DESC, BUStaging ASC, Location ASC;";
-                        cmd.ExecuteNonQuery();
+                        //cmd.CommandText = @"Insert Into [" + "_" + buildingClean + "$] Select RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and Location NOT LIKE '% to %' and BUStaging<>'' and BUStaging NOT LIKE '%B21%' and BUStaging<>'B81-Kennedy' and BUStaging<>'B81-Steelers' and BUStaging<>'B81-Eisenhower' and BUStaging<>'B71-SP-Dock' and BUStaging<>'B72-SP-Dock' and BUStaging<>'B72-Ping-Pong Room' and (LocType<>'CUSTOMER STAGING' and LocType<>'delivered') AND Where NOT EXISTS (SELECT RfidTagId,Location,BU,BUStaging,RequestedDate,RequestedModifyDate,LocType,PackageType From [MasterData$] Where Status<>'Missing' and Location LIKE '%" + buildingName + "%' and BUStaging NOT LIKE '%Dock%' and BUStaging NOT LIKE '%Exam%' and BUStaging NOT LIKE '%Inspect%' and PackageType IN " + SizeListString() + ") Order By LocType DESC, BUStaging ASC, Location ASC, PackageType DESC;";
+                        
+                        
                     }
                     catch (Exception ex)
                     {
@@ -463,6 +507,8 @@ namespace BUPicksList
 
             if (dlg.ShowDialog() == DialogResult.OK)
             {
+                Properties.Settings.Default.MissingLocation = Path.GetFullPath(dlg.FileName);
+                Properties.Settings.Default.Save();
                 defaultMissingDirectory = dlg.FileName;
                 MissingListLabel.Text = Path.GetDirectoryName(dlg.FileName);
                 formula = formulaModified;
